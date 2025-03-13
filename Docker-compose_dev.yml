@@ -5,7 +5,7 @@ services:
       target: dev
       context: ./frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     volumes:
       - ./frontend:/app/frontend
   
