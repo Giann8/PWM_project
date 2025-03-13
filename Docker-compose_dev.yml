@@ -1,0 +1,33 @@
+services:
+  web:
+    container_name: frontend
+    build: 
+      target: dev
+      context: ./frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/app/frontend
+  
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+    env_file: .env
+    restart: always
+  
+  backend:
+    container_name: backend
+    build: 
+      context: ./backend
+      target: dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/src:/app/backend/src
+    depends_on:
+      - mongodb
+    env_file: .env
