@@ -1,10 +1,14 @@
-const { MongoClient } = require('mongodb')
+const { MongoClient, ObjectId } = require('mongodb')
 const crypto = require('crypto');
 
 const DB_NAME = "MW_cards"
 const client = new MongoClient(MONGO_URI);
 
-
+/**
+ * Funzione per l'hash della password
+ * @param {String} input 
+ * @returns hash della password
+ */
 function hash(input) {
     return crypto.createHash('sha256')
         .update(input)
@@ -65,17 +69,15 @@ async function registerUser(res, user) {
             email: user.email,
             password: user.password,
             coins: 0,
-            albums: {
-                primo_album: [],
+            album: {
             },
-            favorite_hero: user.favorite_hero||""
+            favorite_hero: user.favorite_hero || ""
         });
+
         res.json(user);
         console.log('User added successfully');
 
     } catch (err) {
-
-        console.log(err);
         res.status(500).json({ error: `Errore Generico: ${err.code}` })
 
     } finally {
@@ -109,22 +111,54 @@ async function deleteUser(res, user) {
     } catch (err) {
         console.log(err, user.email);
         res.status(500).json({ error: `Errore Generico: ${err.code}` })
+    } finally {
+        await client.close();
     }
 }
 
 /**
  * Permette di vedere gli utenti registrati
- * @param {*} res response
+ * @param {Response} res response
  */
 async function getUsers(res) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
     try {
         const users = await db.collection('users').find().toArray();
-        res.status(200).json(users)
+        if (users.length > 0) {
+            res.status(200).json(users)
+        } else {
+            res.status(400).json({ error: `Errore: nessun utente nel DB` })
+        }
     } catch (err) {
-        console.log(err);
         res.status(500).json({ error: `Errore Generico: ${err.code}` })
+    } finally {
+        await client.close();
+    }
+}
+/**
+ * Funzione per ottenere un utente tramite username
+ * @param {*} id 
+ */
+async function getUserById(id) {
+
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    console.log(id);
+    const confront_id = ObjectId.createFromHexString(id);
+    try {
+
+        const user = await db.collection('users').findOne({ _id: confront_id });
+        if (user) {
+            return user;
+        } else {
+            throw new Error("Utente non trovato")
+        }
+    } catch (err) {
+        throw err;
+    } finally {
+        await client.close();
     }
 }
 
@@ -132,9 +166,28 @@ async function getUsers(res) {
  * funzione per il login dello user
  * @param {JSON} body 
  */
-async function logUser(body){
-    
+async function logUser(body) {
+
+    if (!body.email || !body.password) {
+        throw new Error("email o password mancanti")
+    }
+
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const user = await db.collection('users').findOne({
+        email: body.email,
+        password: hash(body.password)
+    });
+
+    if (user) {
+        return user;
+    }
+    else {
+        throw new Error("L'email o la password sono errati oppure l'utente non esiste")
+    }
+
 }
 
-module.exports = { registerUser, getUsers, deleteUser }
+module.exports = { registerUser, getUsers, deleteUser, getUserById, logUser }
 

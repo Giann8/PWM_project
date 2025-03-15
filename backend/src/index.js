@@ -38,9 +38,18 @@ app.get('/users', (req, res) => {
     lib.getUsers(res)
     //res.json({ message: "users" })
 })
+app.get('/users/:id', (req, res) => {
+    lib.getUserById(req.params.id)
+        .then(result => res.json(result))
+        .catch(err => res.status(500).send("Errore: " + err))
+})
 
-app.post('/login',(req,res)=>{
-    res.json({message: "login"})
+app.post('/login', (req, res) => {
+
+        lib.logUser(req.body)
+            .then(result => res.json(result))
+            .then(() => console.log("user logged"))
+            .catch(err => res.status(500).json({ message:"Si è verificato un errore: ",error: err.toString() }))
 })
 
 app.delete('/deleteUser', (req, res) => {
@@ -48,9 +57,9 @@ app.delete('/deleteUser', (req, res) => {
     console.log("user deleted")
 })
 
-app.get('/heroes',(req,res)=>{
+app.get('/heroes', (req, res) => {
     marvel.getFromMarvel('public/characters')
-    .then(result => res.json(result))
+        .then(result => res.json(result))
 })
 
 app.listen(3001, () => {
