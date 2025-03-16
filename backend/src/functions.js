@@ -28,6 +28,19 @@ async function searchEmail(email) {
 }
 
 /**
+ * Funzione per controllare se l'username è già utilizzato
+ * @param {*} username 
+ * @returns 
+ */
+async function checkUsername(username) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const user = db.collection('users').findOne({ username: username });
+    return user;
+}
+
+/**
  * Add new user to the database
  * @param {*} res response 
  * @param {*} user  user to add
@@ -59,6 +72,10 @@ async function registerUser(res, user) {
     try {
         if (await searchEmail(user.email) != null) {
             res.status(400).json({ error: 'Email already in use' })
+            return
+        }
+        if (await checkUsername(user.username) != null) {
+            res.status(400).json({ error: 'Username already in use' })
             return
         }
 
