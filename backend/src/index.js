@@ -31,32 +31,79 @@ app.get('/', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
-    lib.registerUser(res, req.body)
+    try {
+
+        lib.registerUser(res, req.body)
+            .then(result => res.json(result))
+            .catch(err => res.status(500).send("Errore: " + err.toString()))
+
+    } catch (err) {
+        res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() })
+    }
 })
 
 app.get('/users', (req, res) => {
     lib.getUsers(res)
     //res.json({ message: "users" })
 })
+
 app.get('/users/:id', (req, res) => {
     lib.getUserById(req.params.id)
         .then(result => res.json(result))
         .catch(err => res.status(500).send("Errore: " + err))
 })
 
+
+
 app.post('/login', (req, res) => {
 
-        lib.logUser(req.body)
-            .then(result => res.json(result))
-            .then(() => console.log("user logged"))
-            .catch(err => res.status(500).json({ message:"Si è verificato un errore: ",error: err.toString() }))
+    lib.logUser(req.body)
+        .then(result => res.json(result))
+        .then(() => console.log("user logged"))
+        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
 })
+
+
+app.post('/users/:id/updateUsername', (req, res) => {
+    lib.updateUsername(req.params.id, req.body)
+        .then(res => res.json(res))
+        .then(() => console.log(`User ${req.params.id} username updated`))
+        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+
+})
+
+app.post('/users/:id/updateName', (req, res) => {
+
+    lib.updateName(req.params.id, req.body)
+        .then(result => res.json(result))
+        .catch(err => res.status(500).send("Errore: " + err.toString()))
+
+})
+
+app.post('/users/:id/updatePassword', (req, res) => {
+
+    lib.updatePassword(req.params.id, req.body)
+        .catch(err => res.status(500).json({ message: "Errore: ", error: err.toString() }))
+        .then(() => res.json(`User ${req.params.id} password updated`))
+
+});
 
 app.delete('/deleteUser', (req, res) => {
-    lib.deleteUser(res, req.body)
-    console.log("user deleted")
+
+    lib.deleteUser(req.body)
+        .then((user) => res.status(200).json(user))
+        .then(() => console.log("user deleted"))
+        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+
 })
 
+app.put('/users/:id/coins', (req, res) => {
+    lib.updateCoins(req.params.id, req.body.coins)
+        .then((result) => res.status(200).json({ message: "Coins updated:  "+ result }))
+        .catch(err => res.status(400).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+})
+
+// #MARVEL API
 app.get('/heroes', (req, res) => {
     marvel.getFromMarvel('public/characters')
         .then(result => res.json(result))
