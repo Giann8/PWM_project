@@ -1,6 +1,5 @@
 MONGO_URI = process.env.MONGO_URI;
 
-
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -17,7 +16,6 @@ function auth(req, res, next) {
         return res.json({ error: "Invalid API key" })
     } else {
         next()
-
     }
 }
 
@@ -63,44 +61,51 @@ app.post('/login', (req, res) => {
         .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
 })
 
+app.delete('/deleteUser/:id', (req, res) => {
 
-app.post('/users/:id/updateUsername', (req, res) => {
-    lib.updateUsername(req.params.id, req.body)
-        .then(res => res.json(res))
-        .then(() => console.log(`User ${req.params.id} username updated`))
-        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-
-})
-
-app.post('/users/:id/updateName', (req, res) => {
-
-    lib.updateName(req.params.id, req.body)
-        .then(result => res.json(result))
-        .catch(err => res.status(500).send("Errore: " + err.toString()))
-
-})
-
-app.post('/users/:id/updatePassword', (req, res) => {
-
-    lib.updatePassword(req.params.id, req.body)
-        .catch(err => res.status(500).json({ message: "Errore: ", error: err.toString() }))
-        .then(() => res.json(`User ${req.params.id} password updated`))
-
-});
-
-app.delete('/deleteUser', (req, res) => {
-
-    lib.deleteUser(req.body)
+    lib.deleteUser(req.params.id)
         .then((user) => res.status(200).json(user))
         .then(() => console.log("user deleted"))
         .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
 
 })
 
-app.put('/users/:id/coins', (req, res) => {
+///UPDATE user info
+
+app.put('/users/:id/updateUsername', (req, res) => {
+    lib.updateUsername(req.params.id, req.body)
+        .then(res => res.json(res))
+        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+
+})
+
+
+app.put('/users/:id/updatePassword', (req, res) => {
+
+    lib.updatePassword(req.params.id, req.body)
+        .then(() => { res.status(200).json({ message: "Password updated correctly" }) })
+        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+
+});
+
+app.put('/users/:id/updateEmail', (req, res) => {
+
+    lib.updateEmail(req.params.id, req.body)
+        .then(() => { res.status(200).json({ message: "Email updated correctly" }) })
+        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+})
+
+
+
+app.put('/users/:id/modifyCoins', (req, res) => {
     lib.updateCoins(req.params.id, req.body.coins)
-        .then((result) => res.status(200).json({ message: "Coins updated:  "+ result }))
+        .then((result) => res.status(200).json({ message: "Coins updated:  " + result }))
         .catch(err => res.status(400).json({ message: "Si è verificato un errore: ", error: err.toString() }))
+})
+
+//pacchetti
+app.get('/pacchetti', (req, res) => {
+
 })
 
 // #MARVEL API

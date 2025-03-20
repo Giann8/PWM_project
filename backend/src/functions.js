@@ -1,5 +1,6 @@
-const { MongoClient, ObjectId, Code } = require('mongodb')
+const { MongoClient, ObjectId } = require('mongodb')
 const crypto = require('crypto');
+
 
 const DB_NAME = "MW_cards"
 const client = new MongoClient(MONGO_URI);
@@ -15,6 +16,11 @@ function hash(input) {
         .digest('hex')
 }
 
+function validateEmail(email) {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+}
+
 /**
  * Cerca utente per email
  * @param {*} email email da cercare
@@ -23,7 +29,7 @@ async function searchEmail(email) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
 
-    const user = await db.collection('users').findOne({ email: email });
+    const user = await db.collection('Users').findOne({ email: email });
     await connection.close();
 
     return user;
@@ -37,7 +43,7 @@ async function checkUsername(username) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
 
-    const user = await db.collection('users').findOne({ username: username })
+    const user = await db.collection('Users').findOne({ username: username })
 
     await connection.close();
 
@@ -58,25 +64,19 @@ async function getUserCredits(id) {
 /**
  * Add new user to the database
  * @param {*} res response 
- * @param {*} user  user to add
+ * @param {body} user  user to add
  */
 async function registerUser(res, user) {
 
-    if (user.password && user.username && user.email && user.name && user.surname) {
+    if (user.password && user.username && user.email) {
         if (user.username.length < 3) {
             throw new Error("Nome utente troppo corto o mancante");
-        }
-        if (user.email.length < 3) {
-            throw new Error("Cognome troppo corto o mancante");
         }
         if (user.password.length < 8) {
             throw new Error("Password troppo corta o mancante");
         }
-        if (user.name.length < 3) {
-            throw new Error("Nome troppo corto o mancante");
-        }
-        if (user.surname.length < 3) {
-            throw new Error("Cognome troppo corto o mancante");
+        if (!validateEmail(user.email)) {
+            throw new Error("Format: email non valida");
         }
 
     } else {
@@ -102,9 +102,7 @@ async function registerUser(res, user) {
 
         const db = connection.db(DB_NAME);
 
-        await db.collection('users').insertOne({
-            name: user.name,
-            surname: user.surname,
+        await db.collection('Users').insertOne({
             username: user.username,
             email: user.email,
             password: user.password,
@@ -127,17 +125,11 @@ async function registerUser(res, user) {
  * @param {*} res response
  * @param {JSON} user utente da eliminare
  */
-async function deleteUser(body) {
-
-    if (body.email.length < 8) {
-        throw new Error("Email troppo corta o mancante")
-    }
+async function deleteUser(id) {
 
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
-    const user = await db.collection('users').findOneAndDelete({
-        email: body.email
-    })
+    const user = await db.collection('Users').findOneAndDelete({ _id: ObjectId.createFromHexString(id) })
 
     connection.close();
 
@@ -157,7 +149,7 @@ async function getUsers(res) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
     try {
-        const users = await db.collection('users').find().toArray();
+        const users = await db.collection('Users').find().toArray();
         if (users.length > 0) {
             res.status(200).json(users)
         } else {
@@ -182,7 +174,7 @@ async function getUserById(id) {
     const confront_id = ObjectId.createFromHexString(id);
     try {
 
-        const user = await db.collection('users').findOne({ _id: confront_id });
+        const user = await db.collection('Users').findOne({ _id: confront_id });
         if (user) {
             return user;
         } else {
@@ -216,9 +208,6 @@ async function getUserByUsername(username) {
         throw err;
     }
 
-
-
-
 }
 
 /**
@@ -234,7 +223,7 @@ async function logUser(body) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
 
-    const user = await db.collection('users').findOne({
+    const user = await db.collection('Users').findOne({
         email: body.email,
         password: hash(body.password)
     });
@@ -252,23 +241,6 @@ async function logUser(body) {
 
 //!Update user info
 
-/**
- * Update user Name
- * @param {string} id 
- * @param {JSON} body 
- */
-async function updateName(id, body) {
-    const connection = await client.connect();
-    const db = connection.db(DB_NAME);
-
-    if (body.name == null || body.name.length < 3) {
-        throw new Error("Nome troppo corto o mancante");
-    }
-
-    const user = await db.collection('users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { name: body.name } })
-    await connection.close()
-    return user;
-}
 
 /**
  * Update user Username
@@ -280,23 +252,42 @@ async function updateUsername(id, body) {
     if (body.username == null || body.username.length < 3) {
         throw new Error("Nome utente troppo corto o mancante");
     }
-    try {
-        if (await checkUsername(body.username) != null) {
-            throw new Error("Nome utente già utilizzato");
-        }
-    } catch (err) {
-        throw err;
+
+    if (await checkUsername(body.username) != null) {
+        throw new Error("Nome utente già utilizzato");
     }
 
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
 
-    const updatedUser = await db.collection('users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { username: body.username } })
+    const updatedUser = await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { username: body.username } })
 
     await connection.close();
     return updatedUser;
+}
 
+/**
+ * Funzione per aggiornare l'email
+ * @param {*} id 
+ * @param {*} body 
+ */
+async function updateEmail(id, body) {
 
+    if (body.email == null || !validateEmail(body.email)) {
+        throw new Error("Format: email non valida");
+    }
+
+    if (await searchEmail(body.email) != null) {
+        throw new Error("Email già in uso");
+    }
+
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const updatedUser = await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { email: body.email } })
+
+    await connection.close();
+    return updatedUser;
 }
 
 /**
@@ -314,10 +305,8 @@ async function updatePassword(id, body) {
     const db = connection.db(DB_NAME);
 
     try {
-        await db.collection('users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { password: hash(body.password) } })
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { password: hash(body.password) } })
 
-    } catch (err) {
-        throw err;
     } finally {
         await connection.close();
     }
@@ -325,14 +314,17 @@ async function updatePassword(id, body) {
 
 ///////////////////////ACQUISTI///////////////////////
 
+/**
+ * Funzione per la modifica del credito
+ * @param {String} id 
+ * @param {String} coins 
+ * @returns 
+ */
+
 async function updateCoins(id, coins) {
     var currentCoins
 
-    try {
-        currentCoins = await getUserCredits(id);
-    } catch (err) {
-        throw err;
-    }
+    currentCoins = await getUserCredits(id);
 
     const connection = await client.connect();
 
@@ -343,19 +335,45 @@ async function updateCoins(id, coins) {
         const total = Number(currentCoins) + Number(coins);
 
         if (total >= 0) {
-            await db.collection('users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { coins: total } })
+            await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { coins: total } })
             return total;
         } else {
             throw new Error("Non hai abbastanza coins");
         }
 
-    } catch (err) {
-        throw err;
     } finally {
         await connection.close();
     }
 
 }
 
-module.exports = { registerUser, getUsers, deleteUser, getUserById, logUser, updateName, updateUsername, searchEmail, getUserByUsername, updatePassword, updateCoins }
+
+
+//Gestione errori
+/**
+ * Funzione per gestire gli errori
+ * @param {Error} err 
+ * @param {Response} res 
+ */
+function handleError(err, res) {
+    if (err.message.includes("Format: ")) {
+        res.status(400).json({ error: err.message })
+    }
+    res.status(500).json({ error: err.message })
+}
+
+module.exports = {
+    registerUser,
+    getUsers,
+    deleteUser,
+    getUserById,
+    logUser,
+    updateUsername,
+    updatePassword,
+    updateEmail,
+    searchEmail,
+    getUserByUsername,
+    updateCoins,
+    handleError
+}
 
