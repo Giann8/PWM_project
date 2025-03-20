@@ -105,6 +105,10 @@ app.put('/users/:id/modifyCoins', (req, res) => {
 
 //pacchetti
 app.get('/pacchetti', (req, res) => {
+    res.status(200).json({ message: "pacchetti" })
+})
+
+app.get('/pacchetti/:id', (req, res) => {
 
 })
 
@@ -112,6 +116,7 @@ app.get('/pacchetti', (req, res) => {
 app.get('/heroes', (req, res) => {
     marvel.getFromMarvel('public/characters')
         .then(result => res.json(result))
+        .catch(result => res.status(500).json(result))
 })
 
 app.listen(3001, () => {
