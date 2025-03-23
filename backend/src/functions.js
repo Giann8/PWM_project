@@ -70,30 +70,26 @@ async function registerUser(res, user) {
 
     if (user.password && user.username && user.email) {
         if (user.username.length < 3) {
-            throw new Error("Nome utente troppo corto o mancante");
+            throw new Error("Format: Nome utente troppo corto o mancante");
         }
         if (user.password.length < 8) {
-            throw new Error("Password troppo corta o mancante");
+            throw new Error("Format: Password troppo corta o mancante");
         }
         if (!validateEmail(user.email)) {
             throw new Error("Format: email non valida");
         }
 
     } else {
-        throw new Error("Missing fields");
+        throw new Error("Format: Missing fields");
     }
 
     user.password = hash(user.password);
 
-    try {
-        if (await searchEmail(user.email) != null) {
-            throw new Error("Email già in uso");
-        }
-        if (await checkUsername(user.username) != null) {
-            throw new Error("Username già in uso");
-        }
-    } catch (err) {
-        throw err;
+    if (await searchEmail(user.email) != null) {
+        throw new Error("Format: Email già in uso");
+    }
+    if (await checkUsername(user.username) != null) {
+        throw new Error("Format: Username già in uso");
     }
 
     const connection = await client.connect();
@@ -111,10 +107,9 @@ async function registerUser(res, user) {
             },
             favorite_hero: user.favorite_hero || "",
         });
+
         console.log("User added")
         return user;
-    } catch (err) {
-        res.status(500).json({ error: `Errore Generico: ${err}` })
 
     } finally {
         await connection.close();
@@ -134,7 +129,7 @@ async function deleteUser(id) {
     connection.close();
 
     if (user == null) {
-        throw new Error("Utente non trovato")
+        throw new Error("Format: Utente non trovato")
     } else {
         return user
     }
@@ -312,6 +307,20 @@ async function updatePassword(id, body) {
     }
 }
 
+async function updateFavSuperhero(id, hero) {
+    if (hero.length <= 0) {
+        throw new Error("Format: Nome supereroe non valido")
+    }
+    const connection = await client.connect();
+
+    try {
+        const db = connection.db(DB_NAME);
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { favorite_hero: hero } })
+    } finally {
+        await connection.close();
+    }
+}
+
 ///////////////////////ACQUISTI///////////////////////
 
 /**
@@ -338,7 +347,7 @@ async function updateCoins(id, coins) {
             await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { coins: total } })
             return total;
         } else {
-            throw new Error("Non hai abbastanza coins");
+            throw new Error("Format: Non hai abbastanza coins");
         }
 
     } finally {
@@ -346,8 +355,29 @@ async function updateCoins(id, coins) {
     }
 
 }
-
-
+/**
+ * Funzione per la creazione di un pacchetto
+ * @param {JSON} body
+ */
+async function creaPacchetto(res, body) {
+    if (body.cardNumber <= 0) {
+        res.status(400).json({ message: "Errore: ", error: "Il pacchetto non può avere un numero nullo o negativo di carte" })
+    }
+    if (body.boosterName.length < 4) {
+        res.status(400).json({ message: "Errore: ", error: "Il nome del pacchetto è troppo corto" })
+    }
+    try {
+        const connection = await client.connect();
+        const db = connection.db(DB_NAME);
+        await db.collection("Boosters").insertOne({
+            boosterName: body.boosterName,
+            cardNumber: body.cardNumber,
+            type: body.type || "default"
+        })
+    } catch (err) {
+        res.status(500).json({ message: "Errore: ", error: err.toString() })
+    }
+}
 
 //Gestione errori
 /**
@@ -356,8 +386,10 @@ async function updateCoins(id, coins) {
  * @param {Response} res 
  */
 function handleError(err, res) {
+    var message = err.message.split("Format: ");
     if (err.message.includes("Format: ")) {
-        res.status(400).json({ error: err.message })
+        res.status(400).json({ error: message[1] })
+        return;
     }
     res.status(500).json({ error: err.message })
 }
@@ -371,9 +403,11 @@ module.exports = {
     updateUsername,
     updatePassword,
     updateEmail,
+    updateFavSuperhero,
     searchEmail,
     getUserByUsername,
     updateCoins,
-    handleError
+    handleError,
+    creaPacchetto
 }
 

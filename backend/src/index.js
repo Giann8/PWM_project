@@ -28,96 +28,127 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 })
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
+
     try {
+        const result = await lib.registerUser(res, req.body);
+        res.status(200).json(result);
+    } catch (error) {
+        lib.handleError(error, res)
+    }
 
-        lib.registerUser(res, req.body)
-            .then(result => res.json(result))
-            .catch(err => res.status(500).send("Errore: " + err.toString()))
+})
 
+app.get('/users', async (req, res) => {
+    try {
+        const result = await lib.getUsers(res);
+        res.status(200).json(result);
     } catch (err) {
-        res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() })
+        lib.handleError(err, res);
+    }
+});
+
+app.get('/users/:id', async (req, res) => {
+    try {
+        const result = await lib.getUserById(req.params.id);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
+
+app.post('/login', async (req, res) => {
+    try {
+        const result = await lib.logUser(req.body);
+        res.status(200).json(result);
+        console.log("user logged");
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
+
+app.delete('/deleteUser/:id', async (req, res) => {
+    try {
+        const user = await lib.deleteUser(req.params.id);
+        res.status(200).json(user);
+        console.log("user deleted");
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
+
+app.put('/users/:id/updateUsername', async (req, res) => {
+    try {
+        const result = await lib.updateUsername(req.params.id, req.body);
+        res.json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
+
+app.put('/users/:id/updatePassword', async (req, res) => {
+    try {
+        await lib.updatePassword(req.params.id, req.body);
+        res.status(200).json({ message: "Password updated correctly" });
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
+
+app.put('/users/:id/updateEmail', async (req, res) => {
+    try {
+        await lib.updateEmail(req.params.id, req.body);
+        res.status(200).json({ message: "Email updated correctly" });
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
+
+app.put('/users/:id/updateFavHero', async (req, res) => {
+    try {
+        await lib.updateFavSuperhero(req.params.id, req.body.favhero);
+        res.status(200).json({ message: "hero updated correctly" });
+    } catch (err) {
+        lib.handleError(err, res);
     }
 })
 
-app.get('/users', (req, res) => {
-    lib.getUsers(res)
-    //res.json({ message: "users" })
-})
-
-app.get('/users/:id', (req, res) => {
-    lib.getUserById(req.params.id)
-        .then(result => res.json(result))
-        .catch(err => res.status(500).send("Errore: " + err))
-})
-
-
-
-app.post('/login', (req, res) => {
-
-    lib.logUser(req.body)
-        .then(result => res.json(result))
-        .then(() => console.log("user logged"))
-        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-})
-
-app.delete('/deleteUser/:id', (req, res) => {
-
-    lib.deleteUser(req.params.id)
-        .then((user) => res.status(200).json(user))
-        .then(() => console.log("user deleted"))
-        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-
-})
-
-///UPDATE user info
-
-app.put('/users/:id/updateUsername', (req, res) => {
-    lib.updateUsername(req.params.id, req.body)
-        .then(res => res.json(res))
-        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-
-})
-
-
-app.put('/users/:id/updatePassword', (req, res) => {
-
-    lib.updatePassword(req.params.id, req.body)
-        .then(() => { res.status(200).json({ message: "Password updated correctly" }) })
-        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-
+app.put('/users/:id/updateCoins', async (req, res) => {
+    try {
+        const result = await lib.updateCoins(req.params.id, req.body.coins);
+        res.status(200).json({ message: "Coins updated: " + result });
+    } catch (err) {
+        lib.handleError(err, res);
+    }
 });
-
-app.put('/users/:id/updateEmail', (req, res) => {
-
-    lib.updateEmail(req.params.id, req.body)
-        .then(() => { res.status(200).json({ message: "Email updated correctly" }) })
-        .catch(err => res.status(500).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-})
-
-
-
-app.put('/users/:id/modifyCoins', (req, res) => {
-    lib.updateCoins(req.params.id, req.body.coins)
-        .then((result) => res.status(200).json({ message: "Coins updated:  " + result }))
-        .catch(err => res.status(400).json({ message: "Si è verificato un errore: ", error: err.toString() }))
-})
 
 //pacchetti
 app.get('/pacchetti', (req, res) => {
     res.status(200).json({ message: "pacchetti" })
 })
 
-app.get('/pacchetti/:id', (req, res) => {
+app.get('/pacchetti/:idPacchetto', (req, res) => {
 
 })
+
+app.post('/pacchetti/creapacchetto', async (req, res) => {
+    try {
+        const result = await lib.creaPacchetto(res, req.body);
+        res.json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+});
 
 // #MARVEL API
-app.get('/heroes', (req, res) => {
-    marvel.getFromMarvel('public/characters')
-        .then(result => res.json(result))
-        .catch(result => res.status(500).json(result))
-})
+app.get('/heroes', async (req, res) => {
+    try {
+        const result = await marvel.getFromMarvel('public/comics');
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
 
 app.listen(3001, () => {
     console.log('Server up and running, listening on port 3001');
