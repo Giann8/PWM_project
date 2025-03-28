@@ -64,6 +64,7 @@ app.post('/login', async (req, res) => {
         console.log("user logged");
     } catch (err) {
         lib.handleError(err, res);
+        console.log("user not logged");
     }
 });
 
@@ -122,23 +123,62 @@ app.put('/users/:id/updateCoins', async (req, res) => {
     }
 });
 
-//pacchetti
-app.get('/pacchetti', (req, res) => {
-    res.status(200).json({ message: "pacchetti" })
-})
-
-app.get('/pacchetti/:idPacchetto', (req, res) => {
-
-})
-
-app.post('/pacchetti/creapacchetto', async (req, res) => {
+app.put('/users/:id/updateBooster', async (req, res) => {
     try {
-        const result = await lib.creaPacchetto(res, req.body);
-        res.json(result);
+        const result = await lib.updateBoosters(req.params.id, req.body.booster);
+        res.status(200).json({ message: "Boosters updated: " + result });
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+
+//pacchetti
+app.get('/pacchetti', async (req, res) => {
+    try {
+        const result = await lib.getPacchetti(res);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.get('/pacchetti/:idPacchetto', async (req, res) => {
+    try {
+        const result = await lib.getPacchettoById(req.params.idPacchetto);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.delete('/pacchetti/:idPacchetto', async (req, res) => {
+    try {
+        const result = await lib.deletePacchetto(req.params.idPacchetto);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.post('/pacchetti/creaPacchetto', async (req, res) => {
+    try {
+        const result = await lib.creaPacchetto(req.body);
+        res.status(200).json(result);
     } catch (err) {
         lib.handleError(err, res);
     }
 });
+
+app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
+    try {
+        const result = await lib.compraPacchetto(req.params.userId, req.body.boosterName);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
 
 // #MARVEL API
 app.get('/heroes', async (req, res) => {

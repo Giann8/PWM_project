@@ -2,6 +2,7 @@ const { MongoClient, ObjectId } = require('mongodb')
 const crypto = require('crypto');
 
 
+
 const DB_NAME = "MW_cards"
 const client = new MongoClient(MONGO_URI);
 
@@ -48,6 +49,20 @@ async function checkUsername(username) {
     await connection.close();
 
     return user;
+}
+
+async function getBoosterByName(boosterName) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const booster = await db.collection('Boosters').findOne({ boosterName: boosterName })
+
+    await connection.close();
+    if (booster == null) {
+        throw new Error("Format: Pacchetto non trovato")
+    }
+
+    return booster;
 }
 
 async function getUserCredits(id) {
@@ -106,6 +121,7 @@ async function registerUser(res, user) {
             album: {
             },
             favorite_hero: user.favorite_hero || "",
+            Boosters: []
         });
 
         console.log("User added")
@@ -148,7 +164,7 @@ async function getUsers(res) {
         if (users.length > 0) {
             res.status(200).json(users)
         } else {
-            res.status(400).json({ error: `Errore: nessun utente nel DB` })
+            res.status(400).json({ error: `Form: nessun utente nel DB` })
         }
     } catch (err) {
         res.status(500).json({ error: `Errore Generico: ${err.code}` })
@@ -165,11 +181,9 @@ async function getUserById(id) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
 
-    console.log(id);
-    const confront_id = ObjectId.createFromHexString(id);
     try {
 
-        const user = await db.collection('Users').findOne({ _id: confront_id });
+        const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(id) });
         if (user) {
             return user;
         } else {
@@ -212,7 +226,7 @@ async function getUserByUsername(username) {
 async function logUser(body) {
 
     if (!body.email || !body.password) {
-        throw new Error("email o password mancanti");
+        throw new Error("Format: email o password mancanti");
     }
 
     const connection = await client.connect();
@@ -225,10 +239,10 @@ async function logUser(body) {
     await connection.close();
 
     if (user) {
-        return user;
+        return user._id;
     }
     else {
-        throw new Error("L'email o la password sono errati oppure l'utente non esiste");
+        throw new Error("Format: L'email o la password sono errati oppure l'utente non esiste");
     }
 
 }
@@ -321,6 +335,22 @@ async function updateFavSuperhero(id, hero) {
     }
 }
 
+async function updateBoosters(user_Id, booster_Id) {
+    const user = await getUserById(user_Id);
+    const booster = await getPacchettoById(booster_Id);
+    if (user.Boosters) {
+        console.log("Pacchetto già acquistato")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        await db.collection('Users').findOneAndUpdate({ _id: user._id }, { $addToSet: { Boosters: booster_Id } });
+    } finally {
+        await connection.close();
+    }
+    return user;
+}
+
 ///////////////////////ACQUISTI///////////////////////
 
 /**
@@ -359,25 +389,120 @@ async function updateCoins(id, coins) {
  * Funzione per la creazione di un pacchetto
  * @param {JSON} body
  */
-async function creaPacchetto(res, body) {
-    if (body.cardNumber <= 0) {
-        res.status(400).json({ message: "Errore: ", error: "Il pacchetto non può avere un numero nullo o negativo di carte" })
+async function creaPacchetto(body) {
+    if (body.cardNumber && body.boosterName && body.cost) {
+        if (body.cardNumber <= 0) {
+            throw new Error("Format: Il numero di carte del pacchetto deve essere maggiore di 0")
+        }
+        if (body.boosterName.length < 4) {
+            throw new Error("Format: Il nome del pacchetto è troppo corto")
+        }
+        if (body.cost < 0) {
+            throw new Error("Format: Il costo del pacchetto non può essere negativo")
+        }
+    } else {
+        throw new Error("Format: Missing fields")
     }
-    if (body.boosterName.length < 4) {
-        res.status(400).json({ message: "Errore: ", error: "Il nome del pacchetto è troppo corto" })
+
+    if (getBoosterByName(body.boosterName) != null) {
+        throw new Error("Format: Pacchetto già esistente")
     }
+
+    const connection = await client.connect();
+
     try {
-        const connection = await client.connect();
         const db = connection.db(DB_NAME);
-        await db.collection("Boosters").insertOne({
+        const booster = await db.collection("Boosters").insertOne({
             boosterName: body.boosterName,
-            cardNumber: body.cardNumber,
+            cardNumber: Number(body.cardNumber),
+            cost: Number(body.cost),
             type: body.type || "default"
         })
-    } catch (err) {
-        res.status(500).json({ message: "Errore: ", error: err.toString() })
+        return booster;
+    } finally {
+        await connection.close();
     }
 }
+
+/**
+ * Funzione per eliminare un pacchetto.
+ * @param {String} boosterId 
+ */
+async function deletePacchetto(boosterId) {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const booster = await db.collection('Boosters').findOneAndDelete({ _id: ObjectId.createFromHexString(boosterId) });
+        if (booster == null) {
+            throw new Error("Format: Pacchetto non trovato")
+        }
+        return booster;
+    } finally {
+        await connection.close();
+    }
+};
+
+/**
+ * Funzione per ottenere tutti i pacchetti
+ */
+async function getPacchetti() {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const boosters = await db.collection("Boosters").find().toArray();
+
+        if (boosters.length <= 0) {
+            throw new Error("Format: Nessun pacchetto trovato")
+        }
+
+        return boosters;
+    } finally {
+        await connection.close();
+    }
+}
+
+/**
+ * Funzione per ottenere un pacchetto tramite id.
+ * @param {String} boosterId 
+ * @returns 
+ */
+async function getPacchettoById(boosterId) {
+    const connection = await client.connect();
+
+    try {
+        const db = connection.db(DB_NAME);
+        const booster = await db.collection("Boosters").findOne({ _id: ObjectId.createFromHexString(boosterId) });
+
+        if (booster == null) {
+            throw new Error("Format: Pacchetto non trovato")
+        }
+
+        return booster;
+    } finally {
+        await connection.close();
+    }
+}
+
+/**
+ * Funzione per l'acquisto di un pacchetto.
+ * @param {String} id 
+ * @param {String} boosterName 
+ */
+async function compraPacchetto(id, boosterName) {
+
+
+    const booster = await getBoosterByName(boosterName);
+    const user = await getUserById(id);
+
+    if (user.coins >= booster.cost) {
+        var result = await updateCoins(id, -booster.cost);
+        return JSON.stringify({ message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result });
+    } else {
+        throw new Error("Format: Non hai abbastanza coins");
+    }
+
+}
+
 
 //Gestione errori
 /**
@@ -404,10 +529,15 @@ module.exports = {
     updatePassword,
     updateEmail,
     updateFavSuperhero,
+    updateBoosters,
     searchEmail,
     getUserByUsername,
     updateCoins,
     handleError,
-    creaPacchetto
+    creaPacchetto,
+    deletePacchetto,
+    getPacchetti,
+    getPacchettoById,
+    compraPacchetto
 }
 
