@@ -6,7 +6,7 @@
 
   - [x] login
   - [x] registrazione
-  - [ ] update informazioni
+  - [x] update informazioni
 
     - Dati:
       - e-mail
@@ -18,8 +18,8 @@
       - album-vuoto
       - eroe preferito
 
-  - [ ] modifica informazioni
-  - [ ] rimozione profilo
+  - [x] modifica informazioni
+  - [x] rimozione profilo
 
 - [ ] acquisto crediti da spendere: "/shop"
   - [ ] acquisto bustine
@@ -28,7 +28,7 @@
     - busta eroi
     - busta villains
   
-  - [ ] acquisto coins
+  - [x] acquisto coins
     - aggiunta metodo di pagamento
   
   - [ ] vendita carte

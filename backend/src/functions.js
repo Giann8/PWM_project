@@ -1,5 +1,7 @@
 const { MongoClient, ObjectId } = require('mongodb')
 const crypto = require('crypto');
+const { getFromMarvel, getRandomInt } = require('./marvel');
+const { json } = require('stream/consumers');
 
 
 
@@ -56,13 +58,34 @@ async function getBoosterByName(boosterName) {
     const db = connection.db(DB_NAME);
 
     const booster = await db.collection('Boosters').findOne({ boosterName: boosterName })
+    await connection.close();
+    if (booster != null) {
+        return booster;
+    }
+    throw new Error("Format: Pacchetto non trovato")
+}
+
+async function checkUserPassword(id, password) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(id), password: hash(password) })
 
     await connection.close();
-    if (booster == null) {
-        throw new Error("Format: Pacchetto non trovato")
-    }
 
-    return booster;
+    return user;
+}
+
+async function checkBooster(boosterName) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const booster = await db.collection('Boosters').findOne({ boosterName: boosterName })
+    await connection.close();
+    if (booster != null) {
+        return true
+    }
+    return false;
 }
 
 async function getUserCredits(id) {
@@ -113,7 +136,7 @@ async function registerUser(res, user) {
 
         const db = connection.db(DB_NAME);
 
-        await db.collection('Users').insertOne({
+        const added = await db.collection('Users').insertOne({
             username: user.username,
             email: user.email,
             password: user.password,
@@ -125,7 +148,11 @@ async function registerUser(res, user) {
         });
 
         console.log("User added")
-        return user;
+        return {
+            _id: added.insertedId,
+            username: user.username,
+            email: user.email
+        };
 
     } finally {
         await connection.close();
@@ -185,7 +212,15 @@ async function getUserById(id) {
 
         const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(id) });
         if (user) {
-            return user;
+            return {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                coins: user.coins,
+                favorite_hero: user.favorite_hero,
+                boosters: user.Boosters,
+                album: user.album
+            };
         } else {
             throw new Error("Utente non trovato")
         }
@@ -305,9 +340,21 @@ async function updateEmail(id, body) {
  * @param {Json} body 
  */
 async function updatePassword(id, body) {
+    if (body.oldPassword == null || body.oldPassword.length < 8) {
+        throw new Error("Format: Inserisci la password corrente");
+    }
 
     if (body.password.length < 8) {
-        throw new Error("Password troppo corta o mancante");
+        throw new Error("Format: Password troppo corta o mancante");
+    }
+
+
+    if (await checkUserPassword(id, body.oldPassword) == null) {
+        throw new Error("Format: La password corrente inserita è errata");
+    }
+
+    if (body.password == body.oldPassword) {
+        throw new Error("Format: La nuova password non può essere uguale a quella vecchia");
     }
 
     const connection = await client.connect();
@@ -335,16 +382,13 @@ async function updateFavSuperhero(id, hero) {
     }
 }
 
-async function updateBoosters(user_Id, booster_Id) {
+async function updatePersonalBoosters(user_Id, booster_Id) {
     const user = await getUserById(user_Id);
-    const booster = await getPacchettoById(booster_Id);
-    if (user.Boosters) {
-        console.log("Pacchetto già acquistato")
-    }
+    
     const connection = await client.connect();
     try {
         const db = connection.db(DB_NAME);
-        await db.collection('Users').findOneAndUpdate({ _id: user._id }, { $addToSet: { Boosters: booster_Id } });
+        await db.collection('Users').findOneAndUpdate({ _id: user._id }, { $push: { Boosters: { booster_Id } } });
     } finally {
         await connection.close();
     }
@@ -371,6 +415,8 @@ async function updateCoins(id, coins) {
 
         const db = connection.db(DB_NAME);
 
+        console.log("Current coins: " + currentCoins)
+        console.log("Coins to add: " + coins)
         const total = Number(currentCoins) + Number(coins);
 
         if (total >= 0) {
@@ -404,7 +450,9 @@ async function creaPacchetto(body) {
         throw new Error("Format: Missing fields")
     }
 
-    if (getBoosterByName(body.boosterName) != null) {
+
+    if (await checkBooster(body.boosterName)) {
+        console.log(body.boosterName)
         throw new Error("Format: Pacchetto già esistente")
     }
 
@@ -416,7 +464,8 @@ async function creaPacchetto(body) {
             boosterName: body.boosterName,
             cardNumber: Number(body.cardNumber),
             cost: Number(body.cost),
-            type: body.type || "default"
+            type: body.type || "default",
+            img: body.img || "https://www.pngall.com/wp-content/uploads/5/Booster-PNG-Clipart-Background.png"
         })
         return booster;
     } finally {
@@ -493,14 +542,32 @@ async function compraPacchetto(id, boosterName) {
 
     const booster = await getBoosterByName(boosterName);
     const user = await getUserById(id);
-
+    console.log(user)
+    console.log(JSON.stringify(booster._id))
     if (user.coins >= booster.cost) {
         var result = await updateCoins(id, -booster.cost);
+        await updatePersonalBoosters(id, JSON.stringify(booster._id));
         return JSON.stringify({ message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result });
     } else {
         throw new Error("Format: Non hai abbastanza coins");
     }
 
+}
+
+//MARVEL RANDOM PICK
+
+async function getRandomHero(n = 1) {
+    heroes_data = getFromMarvel('public/characters', "limit=1");
+    result = [];
+    for (i = 0; i < n;) {
+        offset = getRandomInt(0, heroes_data.data.total);
+        hero = await getFromMarvel('/public/characters', `limit=1&offset=${offset}`);
+        if (hero.data.results.length > 0) {
+            result = hero.data.results[0];
+            i++;
+        }
+    }
+    return result;
 }
 
 
@@ -529,7 +596,7 @@ module.exports = {
     updatePassword,
     updateEmail,
     updateFavSuperhero,
-    updateBoosters,
+    updatePersonalBoosters,
     searchEmail,
     getUserByUsername,
     updateCoins,
@@ -538,6 +605,7 @@ module.exports = {
     deletePacchetto,
     getPacchetti,
     getPacchettoById,
-    compraPacchetto
+    compraPacchetto,
+    getRandomHero
 }
 

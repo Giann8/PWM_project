@@ -125,7 +125,7 @@ app.put('/users/:id/updateCoins', async (req, res) => {
 
 app.put('/users/:id/updateBooster', async (req, res) => {
     try {
-        const result = await lib.updateBoosters(req.params.id, req.body.booster);
+        const result = await lib.updatePersonalBoosters(req.params.id, req.body.booster);
         res.status(200).json({ message: "Boosters updated: " + result });
     } catch (err) {
         lib.handleError(err, res);
@@ -183,12 +183,21 @@ app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
 // #MARVEL API
 app.get('/heroes', async (req, res) => {
     try {
-        const result = await marvel.getFromMarvel('public/comics');
+        const result = await marvel.getFromMarvel('public/characters');
         res.status(200).json(result);
     } catch (err) {
         res.status(500).json(err);
     }
 });
+
+app.get('/randomHeroes', async (req, res) => {
+    try {
+        const result = await lib.getRandomHero();
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+})
 
 app.listen(3001, () => {
     console.log('Server up and running, listening on port 3001');
