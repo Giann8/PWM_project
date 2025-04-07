@@ -1,5 +1,8 @@
 const { MongoClient, ObjectId } = require('mongodb')
 const crypto = require('crypto');
+const { getFromMarvel, getRandomInt } = require('./marvel');
+const { json } = require('stream/consumers');
+
 
 
 const DB_NAME = "MW_cards"
@@ -50,6 +53,41 @@ async function checkUsername(username) {
     return user;
 }
 
+async function getBoosterByName(boosterName) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const booster = await db.collection('Boosters').findOne({ boosterName: boosterName })
+    await connection.close();
+    if (booster != null) {
+        return booster;
+    }
+    throw new Error("Format: Pacchetto non trovato")
+}
+
+async function checkUserPassword(id, password) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(id), password: hash(password) })
+
+    await connection.close();
+
+    return user;
+}
+
+async function checkBooster(boosterName) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const booster = await db.collection('Boosters').findOne({ boosterName: boosterName })
+    await connection.close();
+    if (booster != null) {
+        return true
+    }
+    return false;
+}
+
 async function getUserCredits(id) {
     var user;
     try {
@@ -70,30 +108,26 @@ async function registerUser(res, user) {
 
     if (user.password && user.username && user.email) {
         if (user.username.length < 3) {
-            throw new Error("Nome utente troppo corto o mancante");
+            throw new Error("Format: Nome utente troppo corto o mancante");
         }
         if (user.password.length < 8) {
-            throw new Error("Password troppo corta o mancante");
+            throw new Error("Format: Password troppo corta o mancante");
         }
         if (!validateEmail(user.email)) {
             throw new Error("Format: email non valida");
         }
 
     } else {
-        throw new Error("Missing fields");
+        throw new Error("Format: Missing fields");
     }
 
     user.password = hash(user.password);
 
-    try {
-        if (await searchEmail(user.email) != null) {
-            throw new Error("Email già in uso");
-        }
-        if (await checkUsername(user.username) != null) {
-            throw new Error("Username già in uso");
-        }
-    } catch (err) {
-        throw err;
+    if (await searchEmail(user.email) != null) {
+        throw new Error("Format: Email già in uso");
+    }
+    if (await checkUsername(user.username) != null) {
+        throw new Error("Format: Username già in uso");
     }
 
     const connection = await client.connect();
@@ -102,7 +136,7 @@ async function registerUser(res, user) {
 
         const db = connection.db(DB_NAME);
 
-        await db.collection('Users').insertOne({
+        const added = await db.collection('Users').insertOne({
             username: user.username,
             email: user.email,
             password: user.password,
@@ -110,11 +144,15 @@ async function registerUser(res, user) {
             album: {
             },
             favorite_hero: user.favorite_hero || "",
+            Boosters: []
         });
+
         console.log("User added")
-        return user;
-    } catch (err) {
-        res.status(500).json({ error: `Errore Generico: ${err}` })
+        return {
+            _id: added.insertedId,
+            username: user.username,
+            email: user.email
+        };
 
     } finally {
         await connection.close();
@@ -134,7 +172,7 @@ async function deleteUser(id) {
     connection.close();
 
     if (user == null) {
-        throw new Error("Utente non trovato")
+        throw new Error("Format: Utente non trovato")
     } else {
         return user
     }
@@ -153,7 +191,7 @@ async function getUsers(res) {
         if (users.length > 0) {
             res.status(200).json(users)
         } else {
-            res.status(400).json({ error: `Errore: nessun utente nel DB` })
+            res.status(400).json({ error: `Form: nessun utente nel DB` })
         }
     } catch (err) {
         res.status(500).json({ error: `Errore Generico: ${err.code}` })
@@ -170,13 +208,19 @@ async function getUserById(id) {
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
 
-    console.log(id);
-    const confront_id = ObjectId.createFromHexString(id);
     try {
 
-        const user = await db.collection('Users').findOne({ _id: confront_id });
+        const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(id) });
         if (user) {
-            return user;
+            return {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                coins: user.coins,
+                favorite_hero: user.favorite_hero,
+                boosters: user.Boosters,
+                album: user.album
+            };
         } else {
             throw new Error("Utente non trovato")
         }
@@ -217,7 +261,7 @@ async function getUserByUsername(username) {
 async function logUser(body) {
 
     if (!body.email || !body.password) {
-        throw new Error("email o password mancanti");
+        throw new Error("Format: email o password mancanti");
     }
 
     const connection = await client.connect();
@@ -230,10 +274,10 @@ async function logUser(body) {
     await connection.close();
 
     if (user) {
-        return user;
+        return user._id;
     }
     else {
-        throw new Error("L'email o la password sono errati oppure l'utente non esiste");
+        throw new Error("Format: L'email o la password sono errati oppure l'utente non esiste");
     }
 
 }
@@ -296,9 +340,21 @@ async function updateEmail(id, body) {
  * @param {Json} body 
  */
 async function updatePassword(id, body) {
+    if (body.oldPassword == null || body.oldPassword.length < 8) {
+        throw new Error("Format: Inserisci la password corrente");
+    }
 
     if (body.password.length < 8) {
-        throw new Error("Password troppo corta o mancante");
+        throw new Error("Format: Password troppo corta o mancante");
+    }
+
+
+    if (await checkUserPassword(id, body.oldPassword) == null) {
+        throw new Error("Format: La password corrente inserita è errata");
+    }
+
+    if (body.password == body.oldPassword) {
+        throw new Error("Format: La nuova password non può essere uguale a quella vecchia");
     }
 
     const connection = await client.connect();
@@ -310,6 +366,33 @@ async function updatePassword(id, body) {
     } finally {
         await connection.close();
     }
+}
+
+async function updateFavSuperhero(id, hero) {
+    if (hero.length <= 0) {
+        throw new Error("Format: Nome supereroe non valido")
+    }
+    const connection = await client.connect();
+
+    try {
+        const db = connection.db(DB_NAME);
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { favorite_hero: hero } })
+    } finally {
+        await connection.close();
+    }
+}
+
+async function updatePersonalBoosters(user_Id, booster_Id) {
+    const user = await getUserById(user_Id);
+    
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        await db.collection('Users').findOneAndUpdate({ _id: user._id }, { $push: { Boosters: { booster_Id } } });
+    } finally {
+        await connection.close();
+    }
+    return user;
 }
 
 ///////////////////////ACQUISTI///////////////////////
@@ -332,13 +415,15 @@ async function updateCoins(id, coins) {
 
         const db = connection.db(DB_NAME);
 
+        console.log("Current coins: " + currentCoins)
+        console.log("Coins to add: " + coins)
         const total = Number(currentCoins) + Number(coins);
 
         if (total >= 0) {
             await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { coins: total } })
             return total;
         } else {
-            throw new Error("Non hai abbastanza coins");
+            throw new Error("Format: Non hai abbastanza coins");
         }
 
     } finally {
@@ -346,7 +431,144 @@ async function updateCoins(id, coins) {
     }
 
 }
+/**
+ * Funzione per la creazione di un pacchetto
+ * @param {JSON} body
+ */
+async function creaPacchetto(body) {
+    if (body.cardNumber && body.boosterName && body.cost) {
+        if (body.cardNumber <= 0) {
+            throw new Error("Format: Il numero di carte del pacchetto deve essere maggiore di 0")
+        }
+        if (body.boosterName.length < 4) {
+            throw new Error("Format: Il nome del pacchetto è troppo corto")
+        }
+        if (body.cost < 0) {
+            throw new Error("Format: Il costo del pacchetto non può essere negativo")
+        }
+    } else {
+        throw new Error("Format: Missing fields")
+    }
 
+
+    if (await checkBooster(body.boosterName)) {
+        console.log(body.boosterName)
+        throw new Error("Format: Pacchetto già esistente")
+    }
+
+    const connection = await client.connect();
+
+    try {
+        const db = connection.db(DB_NAME);
+        const booster = await db.collection("Boosters").insertOne({
+            boosterName: body.boosterName,
+            cardNumber: Number(body.cardNumber),
+            cost: Number(body.cost),
+            type: body.type || "default",
+            img: body.img || "https://www.pngall.com/wp-content/uploads/5/Booster-PNG-Clipart-Background.png"
+        })
+        return booster;
+    } finally {
+        await connection.close();
+    }
+}
+
+/**
+ * Funzione per eliminare un pacchetto.
+ * @param {String} boosterId 
+ */
+async function deletePacchetto(boosterId) {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const booster = await db.collection('Boosters').findOneAndDelete({ _id: ObjectId.createFromHexString(boosterId) });
+        if (booster == null) {
+            throw new Error("Format: Pacchetto non trovato")
+        }
+        return booster;
+    } finally {
+        await connection.close();
+    }
+};
+
+/**
+ * Funzione per ottenere tutti i pacchetti
+ */
+async function getPacchetti() {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const boosters = await db.collection("Boosters").find().toArray();
+
+        if (boosters.length <= 0) {
+            throw new Error("Format: Nessun pacchetto trovato")
+        }
+
+        return boosters;
+    } finally {
+        await connection.close();
+    }
+}
+
+/**
+ * Funzione per ottenere un pacchetto tramite id.
+ * @param {String} boosterId 
+ * @returns 
+ */
+async function getPacchettoById(boosterId) {
+    const connection = await client.connect();
+
+    try {
+        const db = connection.db(DB_NAME);
+        const booster = await db.collection("Boosters").findOne({ _id: ObjectId.createFromHexString(boosterId) });
+
+        if (booster == null) {
+            throw new Error("Format: Pacchetto non trovato")
+        }
+
+        return booster;
+    } finally {
+        await connection.close();
+    }
+}
+
+/**
+ * Funzione per l'acquisto di un pacchetto.
+ * @param {String} id 
+ * @param {String} boosterName 
+ */
+async function compraPacchetto(id, boosterName) {
+
+
+    const booster = await getBoosterByName(boosterName);
+    const user = await getUserById(id);
+    console.log(user)
+    console.log(JSON.stringify(booster._id))
+    if (user.coins >= booster.cost) {
+        var result = await updateCoins(id, -booster.cost);
+        await updatePersonalBoosters(id, JSON.stringify(booster._id));
+        return { message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result };
+    } else {
+        throw new Error("Format: Non hai abbastanza coins");
+    }
+
+}
+
+//MARVEL RANDOM PICK
+
+async function getRandomHero(n = 1) {
+    heroes_data = getFromMarvel('public/characters', "limit=1");
+    result = [];
+    for (i = 0; i < n;) {
+        offset = getRandomInt(0, heroes_data.data.total);
+        hero = await getFromMarvel('/public/characters', `limit=1&offset=${offset}`);
+        if (hero.data.results.length > 0) {
+            result = hero.data.results[0];
+            i++;
+        }
+    }
+    return result;
+}
 
 
 //Gestione errori
@@ -356,8 +578,10 @@ async function updateCoins(id, coins) {
  * @param {Response} res 
  */
 function handleError(err, res) {
+    var message = err.message.split("Format: ");
     if (err.message.includes("Format: ")) {
-        res.status(400).json({ error: err.message })
+        res.status(400).json({ error: message[1] })
+        return;
     }
     res.status(500).json({ error: err.message })
 }
@@ -371,9 +595,17 @@ module.exports = {
     updateUsername,
     updatePassword,
     updateEmail,
+    updateFavSuperhero,
+    updatePersonalBoosters,
     searchEmail,
     getUserByUsername,
     updateCoins,
-    handleError
+    handleError,
+    creaPacchetto,
+    deletePacchetto,
+    getPacchetti,
+    getPacchettoById,
+    compraPacchetto,
+    getRandomHero
 }
 

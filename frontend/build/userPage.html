@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progetto_Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid">
+
+        <div class="navbar-brand mx-2 mb-0 h1">Progetto Web</div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse mx-3 justify-content-between" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link active " aria-current="page" href="http://localhost:3000/home.html">Home</a>
+                </li>
+                <li class="nav-item" id="market">
+                    <a class="nav-link active" aria-current="page" href="http://localhost:3000/market.html">Market</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
+                </li>
+            </ul>
+            <div id="user_nav" class="nav-item dropdown d-none">
+                <button id="username" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    Offset
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text"><b>Monete: </b><p id="coins"></p><b>Pacchetti: </b><p id="boostersNumber"></p></p></span></li>
+                    <a class="dropdown-item" href="http://localhost:3000/userPage.html">MyPage</a>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="logout()">logout</button>
+                </div>
+            </div>
+
+            <div id="login_nav" class="">
+                <button class="btn btn-primary" id="login-button"
+                    onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
+                <button class="btn btn-primary" id="register-button"
+                    onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="d-flex justify-content-center">
+            <div id="error-alert"
+                class="alert alert-danger sticky-top align-center d-flex justify-content-between d-none"
+                style="width:50rem;" role="alert">
+                <strong>Errore!</strong>
+                <p id="error"></p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                    onclick="closeAlert()"></button>
+            </div>
+        </div>
+        <div class="card p-5 align-items-center">
+            <div class="card-body d-flex flex-column align-items-center">
+                <h5 class="card-title">Benvenuto</h5><span id="utente"></span></p>
+                <div class="user-info">
+                    <p>Possiedi <b id="coins"></b> monete</p>
+                    <p id="nessun-pacchetto">Non hai pacchetti da aprire <a
+                            href="http://localhost:3000/shop.html">Comprali
+                            qua!</a></p>
+                    <p id="hai-pacchetti" class="d-none">Inoltre hai <b id="numero-pacchetti"></b> pacchetti da aprire
+                    </p>
+                </div>
+                <button class="btn btn-primary m-3" id="logout" onclick="logout()">Logout</button>
+            </div>
+            <div class="card-body align-items-center px-0">
+                <form id="update-email-form" method="dialog" class="row pt-3 justify-content-center" novalidate>
+                    <label id="email-label">E-mail</label>
+
+                    <div class="col-auto">
+                        <input type="email" id="old-email" class="form-control" disabled value="email">
+                    </div>
+
+                    <div class="col-auto">
+                        <input type="email" id="email" class="form-control" value="Nuova email">
+                        <div id="error-message-email" class="error-message"></div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-secondary mb-3">Update email</button>
+                    </div>
+                </form>
+                <form id="update-password-form" method="dialog" class="row py-3 justify-content-center" novalidate>
+                    <label id="password-label">Cambia Password</label>
+
+                    <div class="col-auto">
+                        <input type="text" id="old-password" class="form-control" value="Password corrente">
+                        <div id="error-message-old-password" class="error-message"></div>
+                    </div>
+
+                    <div class="col-auto">
+                        <input type="text" id="password" class="form-control" value="Nuova password">
+                        <div id="error-message-password" class="error-message"></div>
+                    </div>
+
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-secondary">Update password</button>
+                    </div>
+                </form>
+                <form id="update-username-form" method="dialog" class="row py-3 justify-content-center" novalidate>
+                    <label id="username-label">Update Username</label>
+
+                    <div class="col-auto">
+                        <input type="text" id="old-username" class="form-control" disabled>
+                    </div>
+
+                    <div class="col-auto">
+                        <input type="text" id="username" class="form-control">
+                        <div id="error-message-username" class="error-message"></div>
+                    </div>
+
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-secondary">Update username</button>
+                    </div>
+                </form>
+                <div class="col-auto py-3">
+                    <button id="delete-account-button" type="button" class="btn btn-outline-danger 0">Delete
+                        account</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="/scripts/lib.js"></script>
+    <script>
+        onload = async () => {
+            if (checkLogin()) {
+                await getUserInfo();
+            } else {
+                console.log("Non sei loggato");
+                window.location.href = "http://localhost:3000/login.html";
+            }
+            document.getElementById('old-username').value = JSON.parse(localStorage.getItem('username'));
+
+            if (localStorage.getItem("boostersNumber") > 0) {
+                document.getElementById('numero-pacchetti').innerHTML = localStorage.getItem("boostersNumber");
+                document.getElementById('hai-pacchetti').classList.remove('d-none');
+                document.getElementById('nessun-pacchetto').classList.add('d-none');
+            }
+        };
+
+
+    </script>
+</body>
+
+
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progetto_Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid">
+
+    <div class="navbar-brand mx-2 mb-0 h1">Progetto Web</div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse mx-3 justify-content-between" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link active " aria-current="page" href="http://localhost:3000/home.html">Home</a>
+            </li>
+            <li class="nav-item" id="market">
+                <a class="nav-link active" aria-current="page" href="http://localhost:3000/market.html">Market</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
+            </li>
+        </ul>
+        <div id="user_nav" class="nav-item dropdown d-none">
+            <button id="username" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                Offset
+            </button>
+            <div class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text"><b>Monete: </b><p id="coins"></p><b>Pacchetti: </b><p id="boostersNumber"></p></p></span></li>
+                <a class="dropdown-item" href="http://localhost:3000/userPage.html">MyPage</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" onclick="logout()">logout</button>
+            </div>
+        </div>
+
+        <div id="login_nav" class="">
+            <button class="btn btn-primary" id="login-button"
+                onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
+            <button class="btn btn-primary" id="register-button"
+                onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
+        </div>
+    </div>
+</nav>
+
+
+<div id="alerts" class="d-flex justify-content-center ">
+    <div id="error-alert"
+        class="alert alert-danger alert-dismissible sticky-top align-center d-flex justify-content-between fade d-none"
+        style="width:50rem;" role="alert">
+        <p id="error"></p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            onclick="document.getElementById('error-alert').classList.add('d-none')"></button>
+    </div>
+
+    <div id="succesfull-alert"
+        class="alert alert-success sticky-top align-center d-flex justify-content-between fade-in flash d-none"
+        role="alert">
+        <p id="success-message"></p>
+        <button type="button" class="btn-close" data-bs-dismiss="success-alert" aria-label="Close"
+            onclick="document.getElementById('succesfull-alert').classList.add('d-none')"></button>
+    </div>
+</div>
+
+<div class="container">
+    <div id="boosters" class="row justify-content-center">
+        <h2 class="text mt-3">Pacchetti</h2>
+        <div id="card-booster" class="col-sm-6 mb-3 d-none" style="max-width: 20rem;">
+            <div class="card align-items-center text-white bg-dark h-100">
+                <img id="image" src="" class="card-img-top" alt="...">
+                <h5 id="name" class="card-title">test</h5>
+                <div id="card-description" class="card-body">Carte: 0, Prezzo: 0</div>
+                <button id="buy-button" class="btn btn-outline-secondary mb-2" onclick="checkAndBuyBooster(this)">Compra
+                    pacchetto</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="coins" class="row justify-content-center">
+        <h2 class=" text mt-3 ">Monete</h2>
+        <div id="card-coin" class="col md-5" style="max-width: 20rem;">
+            <div class="card align-items-center ">
+                <img id="image" src="" class="card-img-top" alt="...">
+                <h5 id="name" class="card-title">Pugno di monete</h5>
+                <div id="numero-monete" class="card-body">10</div>
+                <button id="buy-coins-1" class="btn btn-primary my-3" onclick="checkAndBuyCoins(10)">1€</button>
+            </div>
+        </div>
+        <div id="card-coin" class="col md-5" style="max-width: 20rem;">
+            <div class="card align-items-center">
+                <img id="image" src="" class="card-img-top" alt="...">
+                <h5 id="name" class="card-title">Pugno di monete</h5>
+                <div id="numero-monete" class="card-body">100</div>
+                <button id="buy-coins-2" class="btn btn-primary my-3" onclick="checkAndBuyCoins(100)">10€</button>
+            </div>
+        </div>
+        <div id="card-coin" class="col md-5" style="max-width: 20rem;">
+            <div class="card align-items-center">
+                <img id="image" src="" class="card-img-top" alt="...">
+                <h5 id="name" class="card-title">Pugno di monete</h5>
+                <div id="numero-monete" class="card-body">500</div>
+                <button id="buy-coins-3" class="btn btn-primary my-3" onclick="checkAndBuyCoins(500)"
+                    value="500">50€</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="scripts/lib.js"></script>
+<script>
+    onload = async () => {
+        const boosters = await getBoosters();
+        showBoosters(boosters);
+    }
+
+    async function checkAndBuyCoins(coins) {
+        
+        if (checkLogin()) {
+            await buyCredits(coins);
+        } else {
+            window.location.href = "http://localhost:3000/login.html";
+        }
+    }
+    async function checkAndBuyBooster(button) {
+        const card = button.closest('.card');
+        const nameElement = card.querySelector('.card-title');
+
+        if (checkLogin()) {
+            await buyBooster(nameElement.textContent);
+        } else {
+            window.location.href = "http://localhost:3000/login.html";
+        }
+    }
+
+</script>
+
+</html>
