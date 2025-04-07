@@ -117,7 +117,7 @@ app.put('/users/:id/updateFavHero', async (req, res) => {
 app.put('/users/:id/updateCoins', async (req, res) => {
     try {
         const result = await lib.updateCoins(req.params.id, req.body.coins);
-        res.status(200).json({ message: "Coins updated: " + result });
+        res.status(200).json({ message: "Coins updated: " + result , coins: result});
     } catch (err) {
         lib.handleError(err, res);
     }

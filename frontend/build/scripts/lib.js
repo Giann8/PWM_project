@@ -1,6 +1,11 @@
 const apikey = 123456;
 
 
+
+
+
+
+
 function logout() {
     localStorage.removeItem('userId');
     localStorage.removeItem('coins');
@@ -9,7 +14,7 @@ function logout() {
 }
 
 function closeAlert() {
-    var alert = document.getElementById("error");
+    var alert = document.getElementById("error-alert");
     alert.classList.add("d-none");
 }
 
@@ -435,11 +440,6 @@ async function updateUsername() {
         })
 }
 
-function goToLogin() {
-    if (!checkLogin()) {
-        window.location.href = "http://localhost:3000/login.html";
-    }
-}
 
 async function getBoosters() {
 
@@ -520,13 +520,12 @@ async function buyBooster(boosterName) {
         })
         .then(({ status, json }) => {
             if (status === 200) {
-                window.location.reload();
+                localStorage.setItem("coins", json.coins);
+                window.setTimeout(()=>{window.location.reload()},500)
             } else {
-                console.log("error: " + json.error);
+                document.getElementById("error-alert").classList.remove("d-none");
+                document.getElementById("error").innerHTML = `<strong>Errore!</strong>` + json.error;
             }
-        })
-        .catch(err => {
-            console.log(err);
         })
 }
 
@@ -552,8 +551,11 @@ async function buyCredits(coins) {
         })
         .then(({ status, json }) => {
             if (status === 200) {
+                    localStorage.setItem("coins",json.coins)
+                    window.location.reload();
             } else {
-                alert("errore: " + json.error);
+                document.getElementById("error").classList.remove("d-none");
+                document.getElementById("error").innerHTML = "Errore: " + json.error;
             }
         })
         .catch(err => {
@@ -575,4 +577,6 @@ if (!document.URL.includes("register.html") && !document.URL.includes("login.htm
         document.getElementById('user_nav').classList.add("d-none");
     }
     document.getElementById('username').innerHTML = JSON.parse(localStorage.getItem('username'));
+    document.getElementById("coins").innerHTML = localStorage.getItem("coins");
+    document.getElementById("boostersNumber").innerHTML = localStorage.getItem("boostersNumber");
 }

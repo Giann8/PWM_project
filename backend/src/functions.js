@@ -547,7 +547,7 @@ async function compraPacchetto(id, boosterName) {
     if (user.coins >= booster.cost) {
         var result = await updateCoins(id, -booster.cost);
         await updatePersonalBoosters(id, JSON.stringify(booster._id));
-        return JSON.stringify({ message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result });
+        return { message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result };
     } else {
         throw new Error("Format: Non hai abbastanza coins");
     }
