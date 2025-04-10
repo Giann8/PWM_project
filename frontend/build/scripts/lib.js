@@ -521,12 +521,13 @@ async function buyBooster(boosterName) {
         .then(({ status, json }) => {
             if (status === 200) {
                 localStorage.setItem("coins", json.coins);
-                window.setTimeout(()=>{window.location.reload()},500)
+                window.location.reload()
             } else {
                 document.getElementById("error-alert").classList.remove("d-none");
                 document.getElementById("error").innerHTML = `<strong>Errore!</strong>` + json.error;
             }
         })
+        .catch(err => { console.log(err); })
 }
 
 async function buyCredits(coins) {
@@ -551,8 +552,8 @@ async function buyCredits(coins) {
         })
         .then(({ status, json }) => {
             if (status === 200) {
-                    localStorage.setItem("coins",json.coins)
-                    window.location.reload();
+                localStorage.setItem("coins", json.coins)
+                window.location.reload();
             } else {
                 document.getElementById("error").classList.remove("d-none");
                 document.getElementById("error").innerHTML = "Errore: " + json.error;
@@ -563,7 +564,133 @@ async function buyCredits(coins) {
         })
 }
 
+async function getScambi() {
 
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json;charset=utf-8'
+        }
+    }
+    scambi = [];
+    await fetch('http://localhost:3001/scambi?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json }
+        })
+        .then(({ status, json }) => {
+            if (status === 200) {
+                scambi = json;
+                console.log(json);
+            } else {
+                console.log("show error alert");
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    return scambi;
+}
+
+async function getMyScambi() {
+
+    var userId = JSON.parse(localStorage.getItem('userId'));
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    }
+    mieiScambi = [];
+    await fetch('http://localhost:3001/scambi/' + userId + '?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json };
+        })
+        .then(({ status, json }) => {
+            if (status === 200) {
+                mieiScambi = json;
+            } else {
+                //showAlert();
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    return mieiScambi;
+}
+
+async function getHeroes() {
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
+    heroes = [];
+    await fetch('http://localhost:3001/heroes?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json };
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                heroes = json;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    return heroes;
+}
+
+async function getRandomHeroes(numberOfHeroes) {
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
+    heroes = [];
+    await fetch('http://localhost:3001/randomHeroes/' + numberOfHeroes + '?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json };
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                heroes = json;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    return heroes;
+}
+
+function showHeroes(heroes) {
+    if (heroes.length == 0) {
+        return;
+    }
+    for (i = 0; i < heroes.length; i++) {
+        var hero = heroes[i];
+        var clone = document.getElementById('card-hero').cloneNode(true);
+        var image = clone.getElementsByClassName('card-img-top')[0];
+        var name = clone.getElementsByClassName('card-title')[0];
+        var description = clone.getElementsByClassName('card-body')[0];
+
+        image.src = hero.img;
+        name.innerHTML = `<b>${hero.name}</b>`;
+        description.innerHTML = `<p>${hero.description}</p>`;
+
+        clone.classList.remove('d-none');
+        document.getElementById('heroes').after(clone);
+    }
+}
 
 
 
@@ -579,4 +706,15 @@ if (!document.URL.includes("register.html") && !document.URL.includes("login.htm
     document.getElementById('username').innerHTML = JSON.parse(localStorage.getItem('username'));
     document.getElementById("coins").innerHTML = localStorage.getItem("coins");
     document.getElementById("boostersNumber").innerHTML = localStorage.getItem("boostersNumber");
+}
+
+function showSpinner(button) {
+    const card = button.closest('.card');
+    const spinner = card.querySelector('.spinner-border');
+    spinner.classList.remove('d-none');
+}
+function hideSpinner(button) {
+    const card = button.closest('.card');
+    const spinner = card.querySelector('.spinner-border');
+    spinner.classList.add('d-none');
 }

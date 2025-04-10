@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progetto_Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid sticky-top">
+
+        <div class="navbar-brand mx-2 mb-0 h1">Progetto Web</div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
+            aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse mx-3 justify-content-between" id="navbarScroll">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link active " aria-current="page" href="http://localhost:3000/home.html">Home</a>
+                </li>
+                <li class="nav-item" id="cardMarket">
+                    <a class="nav-link active" aria-current="page"
+                        href="http://localhost:3000/cardMarket.html">cardMarket</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
+                </li>
+            </ul>
+            <div id="user_nav" class="nav-item dropdown d-none">
+                <button id="username" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    Offset
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text"><b>Monete: </b>
+                            <p id="coins"></p><b>Pacchetti: </b>
+                            <p id="boostersNumber"></p>
+                            </p>
+                        </span></li>
+                    <a class="dropdown-item" href="http://localhost:3000/userPage.html">MyPage</a>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="logout()">logout</button>
+                </div>
+            </div>
+
+            <div id="login_nav" class="">
+                <button class="btn btn-primary" id="login-button"
+                    onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
+                <button class="btn btn-primary" id="register-button"
+                    onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="alerts" class="d-flex justify-content-center sticky-top">
+        <div id="error-alert"
+            class="alert alert-danger sticky-top align-center d-flex justify-content-between d-none" role="alert">
+            <p id="error"></p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                onclick="document.getElementById('error-alert').classList.add('d-none')"></button>
+        </div>
+
+        <div id="succesfull-alert"
+            class="alert alert-success sticky-top align-center d-flex justify-content-between fade-in flash d-none"
+            role="alert">
+            <p id="success-message"></p>
+            <button type="button" class="btn-close" data-bs-dismiss="success-alert" aria-label="Close"
+                onclick="document.getElementById('succesfull-alert').classList.add('d-none')"></button>
+        </div>
+    </div>
+    <div id="offers" class="container mt-3">
+        <div id="other-offers" class="card mb-3 row">
+            <div class="card-header">
+                <h5>Offerte attive</h5>
+            </div>
+            <div class="card-body">
+                <div id="offers-container" class="row justify-content-center">
+                    <!-- Cards will be dynamically inserted here -->
+                    <div id="offer" class="card">
+                        <div id="offer-body" class="card-body">
+                            <h5 id="offer-creator">Nome Creatore</h5>
+                            <p><b>Carta richiesta:</b>
+                            <div id="requested-card" class="small-card"></div>
+                            <b>Carta offerta:</b>
+                            <div id="offered-card"></div>
+                            </p>
+                            <button id="accept-offer" class="btn btn-primary md-3">Accetta</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div id="my-offers" class="card mb-3 row">
+            <div class="card-header">
+                <h5>Le tue offerte</h5>
+            </div>
+            <div class="card-body">
+                <div id="my-offers-container" class="row justify-content-center">
+                    <div id="offer" class="card">
+                        <div id="offer-body" class="card-body">
+                            <b>Carta richiesta:</b>
+                            <div id="requested-card">Richiesta</div>
+                            <b>Carta offerta:</b>
+                            <div id="offered-card">Offerta</div>
+                            <button id="delete-offer" class="btn btn-warning md-3">Elimina</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/lib.js"></script>
+    <script>
+        onload = async () => {
+            const offers = await getScambi();
+
+            if (checkLogin()) {
+                const myOffers = await getMyScambi();
+                if (myOffers.length == 0 || myOffers == null) {
+                    document.getElementById("my-offers-container").innerHTML = `<h2 class="text-center">Non hai offerte attive</h2>`;
+                } else {
+                    showMyOffers(myOffers);
+                }
+
+            } else {
+                document.getElementById("my-offers-container").innerHTML = `<h2 class="text-center">Devi loggarti per vedere le tue offerte</h2>`;
+            }
+
+
+            showOffers(offers);
+
+        }
+
+        function showOffers(offers) {
+            const offersContainer = document.getElementById("offers-container");
+            offersContainer.innerHTML = "";
+            for (let i = 0; i < offers.length; i++) {
+                const offer = offers[i];
+                const card = document.createElement("div");
+                card.className = "col-sm-5 m-3";
+                card.innerHTML = `
+                    <div id="offer" class="card ">
+                        <div id="offer-body" class="card-body">
+                            <h5 id="offer-creator">${offer.creator}</h5>
+                            <div id="offerta" class="row align-items-center justify-content-center">
+                            <div id="requested-card" class="col-sm-4 ">
+                            <b>Carta richiesta:</b>
+                            ${offer.carteRichieste}  
+                            </div> 
+                            <div id="arrow" class="col-sm-4 text-center">--></div>
+                            <div id="offered-card" class="col-sm-4">
+                            <b>Carta offerta:</b>
+                            ${offer.carteOfferte}</div>
+                            <button id="accept-offer" class="btn btn-primary" style="width:10rem;">Accetta <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" ></span></button>
+                            </div>
+                        </div>
+                    </div>`;
+                offersContainer.appendChild(card);
+            }
+        }
+
+        function showMyOffers(offers) {
+            if (offers.length == 0 || offers == null) {
+                document.getElementById("my-offers-container").innerHTML = `<h2>Non hai offerte attive</h2>`;
+            }
+            const offersContainer = document.getElementById("my-offers-container");
+            offersContainer.innerHTML = "";
+            for (let i = 0; i < offers.length; i++) {
+                const offer = offers[i];
+                console.log(offer._id)
+                const card = document.createElement("div");
+                card.className = "col-sm-5 m-3";
+                card.innerHTML = `
+                    <div id="offer" class="card">
+                        <div id="offer-body" class="card-body">
+                            <b>Carta richiesta:</b>
+                            <div id="requested-card">${offer.carteRichieste}</div> 
+                            <b>Carta offerta:</b>
+                            <div id="offered-card">${offer.carteOfferte}</div>
+                            <button id="delete-myOffer" class="btn btn-warning md-3" onclick="deleteScambio('${offer._id}',this)">Elimina <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span></button>
+                        </div>
+                    </div>`;
+                offersContainer.appendChild(card);
+                console.log(card)
+            }
+        }
+        async function deleteScambio(scambioId, button) {
+            showSpinner(button);
+            var userId = JSON.parse(localStorage.getItem('userId'));
+            const options = {
+                method: 'DELETE',
+                headers: {
+                    accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }
+            const response = await fetch('http://localhost:3001/scambi/' + userId + '/' + scambioId + '?apikey=' + apikey, options)
+                .then(async (res) => {
+                    const json = await res.json();
+                    return { status: res.status, json: json }
+                })
+                .then(({ status, json }) => {
+                    if (status === 200) {
+                        document.getElementById('succesfull-alert').classList.remove('d-none');
+                        document.getElementById('success-message').innerHTML = "Offerta eliminata con successo";
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 3000);
+                        console.log(json);
+                    } else {
+                        hideSpinner(button);
+                        document.getElementById('error-alert').classList.remove('d-none');
+                        document.getElementById('error').innerHTML = json.error;
+                        setTimeout(() => {
+                            document.getElementById('error-alert').classList.add('d-none');
+                        }, 3000);
+                    }
+                })
+            if (response) {
+                hideSpinner();
+            }
+        }
+
+  
+
+    </script>
+</body>
+
+</html>

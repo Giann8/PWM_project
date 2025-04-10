@@ -117,15 +117,15 @@ app.put('/users/:id/updateFavHero', async (req, res) => {
 app.put('/users/:id/updateCoins', async (req, res) => {
     try {
         const result = await lib.updateCoins(req.params.id, req.body.coins);
-        res.status(200).json({ message: "Coins updated: " + result , coins: result});
+        res.status(200).json({ message: "Coins updated: " + result, coins: result });
     } catch (err) {
         lib.handleError(err, res);
     }
 });
 
-app.put('/users/:id/updateBooster', async (req, res) => {
+app.put('/users/:id/buyBooster', async (req, res) => {
     try {
-        const result = await lib.updatePersonalBoosters(req.params.id, req.body.booster);
+        const result = await lib.addPersonalBoosters(req.params.id, req.body.booster);
         res.status(200).json({ message: "Boosters updated: " + result });
     } catch (err) {
         lib.handleError(err, res);
@@ -179,20 +179,104 @@ app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
     }
 })
 
+app.get('/pacchettiUtente/:userId', async (req, res) => {
+    try {
+        const result = await lib.getPacchettiByUserId(req.params.userId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.put('/apriPacchetto/:userId', async (req, res) => {
+    try {
+        const result = await lib.apriPacchetto(req.params.userId, req.body.boosterName);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+
+// ####################CARTE E SCAMBI########################
+app.get('/carte/:userId', async (req, res) => {
+    try {
+        const result = await lib.getUserCards(req.params.userId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.get('/cartaSingola/:cardId', async (req, res) => {
+    try {
+        const result = await lib.getCardById(req.params.cardId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.put('/carte/:userId', async (req, res) => {
+    try {
+        const result = await lib.addCard(req.params.userId, req.body.cardName);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.post('/scambi/:userId', async (req, res) => {
+    try {
+        const result = await lib.createScambio(req.params.userId, req.body);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.get('/scambi', async (_, res) => {
+    try {
+        const result = await lib.getScambi();
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.get('/scambi/:userId', async (req, res) => {
+    try {
+        const result = await lib.getScambiByUserId(req.params.userId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.delete('/scambi/:userId/:scambioId', async (req, res) => {
+    try {
+        const result = await lib.deleteScambio(req.params.scambioId, req.params.userId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
 
 // #MARVEL API
 app.get('/heroes', async (req, res) => {
     try {
-        const result = await marvel.getFromMarvel('public/characters');
+        //  var result = await marvel.getFromMarvel('public/characters');
+        const result = await lib.getHeroes();
         res.status(200).json(result);
     } catch (err) {
         res.status(500).json(err);
     }
 });
 
-app.get('/randomHeroes', async (req, res) => {
+
+app.get('/randomHeroes/:numberOfHeroes', async (req, res) => {
     try {
-        const result = await lib.getRandomHero();
+        const result = await lib.getRandomHeroDB(req.params.numberOfHeroes);
         res.status(200).json(result);
     } catch (err) {
         res.status(500).json(err);

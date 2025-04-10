@@ -1,7 +1,7 @@
-const { MongoClient, ObjectId } = require('mongodb')
+const { MongoClient, ObjectId, Db } = require('mongodb')
 const crypto = require('crypto');
 const { getFromMarvel, getRandomInt } = require('./marvel');
-const { json } = require('stream/consumers');
+
 
 
 
@@ -88,6 +88,19 @@ async function checkBooster(boosterName) {
     return false;
 }
 
+async function hasBooster(userId, boosterId) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(userId), [`Boosters.${boosterId}`]: { $gt: 0 } })
+    await connection.close();
+    console.log(user);
+    if (user != null) {
+        return true
+    }
+    return false;
+}
+
 async function getUserCredits(id) {
     var user;
     try {
@@ -144,7 +157,7 @@ async function registerUser(res, user) {
             album: {
             },
             favorite_hero: user.favorite_hero || "",
-            Boosters: []
+            Boosters: {}
         });
 
         console.log("User added")
@@ -382,17 +395,56 @@ async function updateFavSuperhero(id, hero) {
     }
 }
 
-async function updatePersonalBoosters(user_Id, booster_Id) {
+async function addPersonalBoosters(user_Id, booster) {
     const user = await getUserById(user_Id);
-    
+
     const connection = await client.connect();
     try {
         const db = connection.db(DB_NAME);
-        await db.collection('Users').findOneAndUpdate({ _id: user._id }, { $push: { Boosters: { booster_Id } } });
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(user_Id) }, {
+            $inc: {
+                [`Boosters.${booster._id}`]: 1
+            }
+        });
     } finally {
         await connection.close();
     }
     return user;
+}
+
+async function removePersonalBooster(user_Id, boosterId) {
+    if (boosterId == null) {
+        throw new Error("Format: Inserisci il pacchetto da rimuovere");
+
+    }
+
+    const user = await getUserById(user_Id);
+
+    const numeroPacchetti = user.boosters[boosterId];
+
+    const connection = await client.connect();
+    try {
+        var check = null;
+        const db = connection.db(DB_NAME);
+        if (numeroPacchetti && numeroPacchetti > 1) {
+            check = await db.collection("Users").updateOne({ _id: ObjectId.createFromHexString(user_Id) }, {
+                $inc: {
+                    [`Boosters.${boosterId}`]: -1
+                }
+            });
+        } else if (numeroPacchetti && numeroPacchetti === 1) {
+            check = await db.collection("Users").updateOne({ _id: ObjectId.createFromHexString(user_Id) }, {
+                $unset: {
+                    [`Boosters.${boosterId}`]: ""
+                }
+            });
+        }
+        if (check == null) {
+            throw new Error("Format: Pacchetto non trovato")
+        }
+    } finally {
+        await connection.close();
+    }
 }
 
 ///////////////////////ACQUISTI///////////////////////
@@ -415,8 +467,6 @@ async function updateCoins(id, coins) {
 
         const db = connection.db(DB_NAME);
 
-        console.log("Current coins: " + currentCoins)
-        console.log("Coins to add: " + coins)
         const total = Number(currentCoins) + Number(coins);
 
         if (total >= 0) {
@@ -510,6 +560,20 @@ async function getPacchetti() {
     }
 }
 
+async function getPacchettiByUserId(userId) {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const user = await db.collection("Users").findOne({ _id: ObjectId.createFromHexString(userId) });
+        if (user.Boosters.length <= 0) {
+            throw new Error("Format: Nessun pacchetto trovato")
+        }
+        return user.Boosters;
+    } finally {
+        await connection.close();
+    }
+}
+
 /**
  * Funzione per ottenere un pacchetto tramite id.
  * @param {String} boosterId 
@@ -545,8 +609,8 @@ async function compraPacchetto(id, boosterName) {
     console.log(user)
     console.log(JSON.stringify(booster._id))
     if (user.coins >= booster.cost) {
+        await addPersonalBoosters(id, booster);
         var result = await updateCoins(id, -booster.cost);
-        await updatePersonalBoosters(id, JSON.stringify(booster._id));
         return { message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result };
     } else {
         throw new Error("Format: Non hai abbastanza coins");
@@ -554,10 +618,184 @@ async function compraPacchetto(id, boosterName) {
 
 }
 
+async function apriPacchetto(userId, boosterName) {
+    if (!boosterName) {
+        throw new Error("Format: Inserisci il pacchetto da aprire");
+    }
+
+    const booster = await getBoosterByName(boosterName);
+
+    if (!await hasBooster(userId, booster._id)) {
+        throw new Error("Format: Non possiedi questo pacchetto");
+    }
+
+    const heroes = await getRandomHeroDB(booster.cardNumber)
+
+
+    for (let i = 0; i < heroes.length; i++) {
+        await addCard(userId, heroes[i].marvelId);
+    }
+
+
+    const user = await removePersonalBooster(userId, booster._id);
+
+    return { message: "Pacchetto aperto", heroes: heroes, user: user };
+
+}
+
+/**
+ * Funzione per ottenere le carte dell'utente 
+ * @param {String} userId 
+ * @returns 
+ */
+async function getUserCards(userId) {
+    const user = await getUserById(userId);
+    if (user.album.length > 0) {
+        return user.album;
+    }
+    throw new Error("Format: L'utente non possiede nessuna carta");
+}
+/**
+ * 
+ * @param {*} userId 
+ * @param {*} card
+ */
+async function addCard(userId, cardId) {
+    if (!cardId) {
+        throw new Error("Format: Nessuna carta da aggiungere");
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(userId) }, {
+            $inc: {
+                [`album.${cardId}`]: 1
+            }
+        })
+        return { message: "Carte aggiunte" }
+    } catch (err) {
+        console.log(err);
+    } finally {
+        await connection.close();
+    }
+}
+
+async function removeCard(userId, cardId) {
+    const user = await getUserById(userId);
+    const cardQuantity = user.album[cardId];
+    const connection = await client.connect();
+    try {
+        if (cardQuantity && cardQuantity > 1) {
+            await connection.db(DB_NAME).collection("Users").updateOne({ _id: ObjectId.createFromHexString(id) }, {
+                $inc: {
+                    [`album.${cardId}`]: -1
+                }
+            });
+        } else if (cardQuantity && cardQuantity === 1) {
+            await connection.db(DB_NAME).collection("Users").updateOne({ _id: ObjectId.createFromHexString(id) }, {
+                $unset: {
+                    [`album.${cardId}`]: ""
+                }
+            });
+        }
+        return { message: "Carta eliminata", album: user.album }
+    } finally {
+        await connection.close();
+    }
+}
+
+//################### EXCHANGES #######################
+async function createScambio(userId, body) {
+    if (userId == null || body.carteOfferte == null || body.carteRichieste == null) {
+        throw new Error("Format: Missing fields")
+    }
+    if (body.carteOfferte.length <= 0) {
+        throw new Error("Format: Inserisci la carta che vuoi offrire")
+    }
+
+    if (body.carteRichieste.length <= 0) {
+        throw new Error("Format: Inserisci la carta che desideri")
+    }
+    const user = await getUserById(userId);
+
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchange = await db.collection('Exchanges').insertOne({
+            userId: userId,
+            creator: user.username,
+            carteRichieste: body.carteRichieste,
+            carteOfferte: body.carteOfferte
+        })
+        return exchange;
+    } finally {
+        await connection.close();
+    }
+}
+
+async function deleteScambio(exchangeId, userId) {
+    if (userId == null || exchangeId == null) {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchange = await db.collection('Exchanges').findOneAndDelete({ _id: ObjectId.createFromHexString(exchangeId) });
+
+        if (exchange == null) {
+            throw new Error("Scambio non trovato")
+        } else if (exchange.userId != userId) {
+            throw new Error("Format: Non puoi eliminare uno scambio che non hai creato")
+        }
+
+        return exchange;
+    } finally {
+        await connection.close();
+    }
+
+}
+
+async function getScambi() {
+
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchanges = await db.collection('Exchanges').find().toArray();
+        if (exchanges.length > 0) {
+            return exchanges;
+        } else {
+            throw new Error("Format: Nessun scambio trovato");
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
+async function getScambiByUserId(userId) {
+    if (userId == ":userId") {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchanges = await db.collection('Exchanges').find({ userId: userId }).toArray();
+
+        if (exchanges.length > 0) {
+            return exchanges;
+        } else {
+            throw new Error("Format: L'utente non ha scambi attivi");
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
+
 //MARVEL RANDOM PICK
 
 async function getRandomHero(n = 1) {
-    heroes_data = getFromMarvel('public/characters', "limit=1");
+    heroes_data = await getFromMarvel('public/characters', `limit=${n}`);
+
     result = [];
     for (i = 0; i < n;) {
         offset = getRandomInt(0, heroes_data.data.total);
@@ -570,6 +808,38 @@ async function getRandomHero(n = 1) {
     return result;
 }
 
+//Funzioni in caso di malfunzionamento api
+async function getHeroes() {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const heroes = await db.collection('Marvel').find().toArray();
+        if (heroes.length > 0) {
+            return heroes;
+        } else {
+            throw new Error("Format: Nessun eroe trovato");
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
+async function getRandomHeroDB(n = 1) {
+    var result = [];
+
+    const heroes = await getHeroes();
+    for (i = 0; i < n;) {
+        offset = getRandomInt(0, heroes.length);
+        console.log(offset);
+        hero = heroes[offset];
+        if (hero != null) {
+            result.push(hero);
+            i++;
+        }
+    }
+
+    return result;
+}
 
 //Gestione errori
 /**
@@ -596,7 +866,8 @@ module.exports = {
     updatePassword,
     updateEmail,
     updateFavSuperhero,
-    updatePersonalBoosters,
+    addPersonalBoosters,
+    removePersonalBooster,
     searchEmail,
     getUserByUsername,
     updateCoins,
@@ -604,8 +875,19 @@ module.exports = {
     creaPacchetto,
     deletePacchetto,
     getPacchetti,
+    getPacchettiByUserId,
     getPacchettoById,
     compraPacchetto,
-    getRandomHero
+    apriPacchetto,
+    getUserCards,
+    addCard,
+    removeCard,
+    createScambio,
+    getScambi,
+    getScambiByUserId,
+    deleteScambio,
+    getRandomHero,
+    getRandomHeroDB,
+    getHeroes,
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </head>
 
 <body>
@@ -57,61 +58,60 @@
                 </div>
             </div>
         </nav>
-        <div class="container">
-            <div id="carosello" class="card" style="height: 20rem; width: 100%; margin-top: 5rem;">
-                <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
-                    <div id="carousel-inner" class="carousel-inner align-items-center">
+        <div class="packs card ">
+            <div id="boosters" class="row justify-content-center">
+                <h2 class="text mt-3">Pacchetti</h2>
+                <div id="card-booster" class="col-sm-6 mb-3 d-none" style="max-width: 20rem;">
+                    <div class="card align-items-center text-white bg-dark h-100">
+                        <img id="image" src="" class="card-img-top" alt="...">
+                        <h5 id="name" class="card-title">test</h5>
+                        <div id="card-description" class="card-body">Carte: 0, Prezzo: 0</div>
+                        <button id="buy-button" class="btn btn-outline-secondary mb-2" onclick="openBooster(this)">Apri
+                            pacchetto</button>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying"
-                        data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying"
-                        data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
                 </div>
             </div>
         </div>
     </div>
+
     <script src="scripts/lib.js"></script>
     <script>
-        if (checkLogin()) {
-            document.getElementById("coins").innerHTML = localStorage.getItem("coins");
-            document.getElementById("boostersNumber").innerHTML = localStorage.getItem("boostersNumber");
-        }
-
         onload = async () => {
-            heroes = await getRandomHeroes(5);
-            showHeroCarousel(heroes);
+            if (!checkLogin()) {
+                document.getElementsByClassName("packs")[0].innerHTML = `
+                <h2 class="text-center"> Non sei loggato, accedi per vedere i tuoi pacchetti </h2>
+                `
+            } else {
+                console.log(await getMyPacks())
+            }
         }
 
-        function showHeroCarousel(heroes) {
-            for (i = 0; i < heroes.length; i++) {
-                if (i == 1) {
-                    document.getElementById("carousel-inner").innerHTML +=
-                        `<div class="carousel-item active text-center w-100 h-100" >
-                        <img src="${heroes[i].image}" class="rounded mx-auto d-block"  alt="${heroes[i].name}">
-                              <div class="carousel-caption d-none d-md-block">
-                             <h5>${heroes[i].name}</h5>
-                            </div>
-                        </div>`;
-                } else {
-                    document.getElementById("carousel-inner").innerHTML +=
-                        `<div class="carousel-item text-center w-100 h-100">
-                        <img src="${heroes[i].image}" class="rounded mx-auto d-block"  alt="${heroes[i].name}">
-                                <div class="carousel-caption d-none d-md-block">
-                                 <h5>${heroes[i].name}</h5>
-                                </div>
-                        </div>`;
+        async function getMyPacks() {
+            var userId = JSON.parse(localStorage.getItem('userId'));
+            const options = {
+                method: "GET",
+                headers: {
+                    accept: "application/json",
+                    'Content-Type': "application/json",
                 }
-            }
+            };
+            boosters = [];
+            const response = await fetch("http://localhost:3001/pacchettiUtente/" + userId + "?apikey=" + 123456, options)
+                .then(async (res) => {
+                    const json = await res.json();
+                    return { status: res.status, json: json };
+                })
+                .then(({ status, json }) => {
+                    if (status == 200) {
+                        showBoosters(json);
+                        console.log(json);
+                    }
+                })
+
+        }
+
+        async function openBooster() {
+
         }
     </script>
 </body>
-</body>
-
-</html>
-</div>
