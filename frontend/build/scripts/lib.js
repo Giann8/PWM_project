@@ -1,11 +1,6 @@
 const apikey = 123456;
 
 
-
-
-
-
-
 function logout() {
     localStorage.removeItem('userId');
     localStorage.removeItem('coins');
@@ -253,12 +248,18 @@ async function getUserInfo() {
         })
         .then(({ status, json }) => {
             if (status === 200) {
+                var boostersQuantity = 0;
+                for (booster in json.boosters) {
+                    boostersQuantity += json.boosters[booster];
+                }
+                console.log(boostersQuantity)
                 localStorage.setItem('username', JSON.stringify(json.username));
                 localStorage.setItem('coins', JSON.parse(json.coins));
-                localStorage.setItem('boostersNumber', json.boosters.length);
+                localStorage.setItem('boostersNumber', boostersQuantity);
                 document.getElementById('utente').innerHTML = json.username;
                 document.getElementById('old-email').value = json.email;
                 document.getElementById('coins').innerHTML = json.coins;
+                document.getElementById('boostersNumber').innerHTML = boostersQuantity;
 
                 console.log(json.coins);
             } else {
@@ -513,7 +514,7 @@ async function buyBooster(boosterName) {
         })
     }
 
-    await fetch('http://localhost:3001/pacchetti/compraPacchetto/' + userId + '?apikey=' + apikey, options)
+    const response = await fetch('http://localhost:3001/pacchetti/compraPacchetto/' + userId + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -521,13 +522,32 @@ async function buyBooster(boosterName) {
         .then(({ status, json }) => {
             if (status === 200) {
                 localStorage.setItem("coins", json.coins);
-                window.location.reload()
+                localStorage.setItem("boostersNumber", Number(localStorage.getItem("boostersNumber")) + 1);
+                document.getElementById("coins").innerHTML = json.coins;
+                document.getElementById("boostersNumber").innerHTML = Number(localStorage.getItem("boostersNumber")) + 1;
+                showAlert("success", "<strong>Booster acquistato con successo</strong>");
             } else {
-                document.getElementById("error-alert").classList.remove("d-none");
-                document.getElementById("error").innerHTML = `<strong>Errore!</strong>` + json.error;
+                showAlert("error", `<strong>Errore!</strong>` + json.error)
+                return;
             }
         })
-        .catch(err => { console.log(err); })
+        .catch(err => {
+            console.log(err);
+        })
+}
+function showAlert(type, message) {
+
+    document.getElementById(type + '-alert').classList.remove("d-none");
+    document.getElementById(type).innerHTML = message;
+    if (type == "error") {
+        n = 0
+    } else {
+        n = 1
+    }
+    startLoadingBar(3000, n);
+    setTimeout(() => {
+        document.getElementById(type + "-alert").classList.add('d-none');
+    }, 3500);
 }
 
 async function buyCredits(coins) {
@@ -553,14 +573,12 @@ async function buyCredits(coins) {
         .then(({ status, json }) => {
             if (status === 200) {
                 localStorage.setItem("coins", json.coins)
-                window.location.reload();
-            } else {
-                document.getElementById("error").classList.remove("d-none");
-                document.getElementById("error").innerHTML = "Errore: " + json.error;
+                document.getElementById("coins").innerHTML = json.coins;
+                showAlert("success", "<strong>Monete acquistate con successo</strong>");
             }
         })
         .catch(err => {
-            alert("errore: " + err);
+            showAlert("error", `<strong>Errore!</strong>` + err)
         })
 }
 
@@ -583,8 +601,6 @@ async function getScambi() {
             if (status === 200) {
                 scambi = json;
                 console.log(json);
-            } else {
-                console.log("show error alert");
             }
         })
         .catch(err => {
@@ -612,13 +628,12 @@ async function getMyScambi() {
         .then(({ status, json }) => {
             if (status === 200) {
                 mieiScambi = json;
-            } else {
-                //showAlert();
             }
         })
         .catch(err => {
             console.log(err);
         })
+
     return mieiScambi;
 }
 
@@ -647,6 +662,7 @@ async function getHeroes() {
     return heroes;
 }
 
+
 async function getRandomHeroes(numberOfHeroes) {
     const options = {
         method: 'GET',
@@ -672,27 +688,70 @@ async function getRandomHeroes(numberOfHeroes) {
     return heroes;
 }
 
-function showHeroes(heroes) {
+function showHeroesPossessed(heroes, modal) {
     if (heroes.length == 0) {
         return;
     }
+
+    var card = document.getElementById('card-hero');
+
     for (i = 0; i < heroes.length; i++) {
-        var hero = heroes[i];
-        var clone = document.getElementById('card-hero').cloneNode(true);
-        var image = clone.getElementsByClassName('card-img-top')[0];
-        var name = clone.getElementsByClassName('card-title')[0];
-        var description = clone.getElementsByClassName('card-body')[0];
+        showCard(card, heroes[i], true);
+    }
 
-        image.src = hero.img;
-        name.innerHTML = `<b>${hero.name}</b>`;
-        description.innerHTML = `<p>${hero.description}</p>`;
-
-        clone.classList.remove('d-none');
-        document.getElementById('heroes').after(clone);
+    if (modal) {
+        const modal = new bootstrap.Modal(document.getElementById('cardsModal'));
+        modal.show();
     }
 }
 
+/**
+ * 
+ * @param {*} allHeroes 
+ * @param {Object[]} myHeroes 
+ */
+function showHeroes(allHeroes, myHeroes) {
+    var card = document.getElementById('card-hero');
+    for (i = 0; i < allHeroes.length; i++) {
+        if (!myHeroes.includes(allHeroes[i])) {
+            var hero = allHeroes[i];
+            var clone = card.cloneNode(true);
+            var image = clone.getElementsByClassName('card-img-top')[0];
+            var name = clone.getElementsByClassName('card-title')[0];
+            var description = clone.getElementsByClassName('card-description')[0];
 
+            image.src = hero.image;
+            name.innerHTML = `<b>${hero.name}</b>`;
+
+            if (description != null)
+                description.innerHTML = `<p>${hero.description}</p>`;
+
+
+            clone.classList.remove('d-none');
+            card.after(clone);
+        } else {
+            showHeroesPossessed(allHeroes[i], false);
+        }
+    }
+}
+function showCard(card, hero, possessed) {
+    var clone = card.cloneNode(true);
+    var image = clone.getElementsByClassName('card-img-top')[0];
+    var name = clone.getElementsByClassName('card-title')[0];
+    var description = clone.getElementsByClassName('card-description')[0];
+
+    image.src = hero.image;
+    name.innerHTML = `<b>${hero.name}</b>`;
+    if (description != null)
+        description.innerHTML = `<p>${hero.description}</p>`;
+
+    if (!possessed) {
+        image.style.filter = "grayscale(1)";
+    }
+
+    clone.classList.remove('d-none');
+    card.after(clone);
+}
 
 if (!document.URL.includes("register.html") && !document.URL.includes("login.html")) {
     if (checkLogin()) {
@@ -709,12 +768,44 @@ if (!document.URL.includes("register.html") && !document.URL.includes("login.htm
 }
 
 function showSpinner(button) {
+    if (button == null) {
+        document.getElementById("loading").classList.remove('d-none');
+        return;
+    }
     const card = button.closest('.card');
     const spinner = card.querySelector('.spinner-border');
     spinner.classList.remove('d-none');
 }
+
 function hideSpinner(button) {
+    if (button == null) {
+        document.getElementById("loading").classList.remove('d-none');
+        return;
+    }
     const card = button.closest('.card');
     const spinner = card.querySelector('.spinner-border');
     spinner.classList.add('d-none');
+}
+
+function startLoadingBar(duration, n) {
+    if (n == null) {
+        n = 2;
+    }
+    const progressBar = document.getElementsByClassName('progress-bar')[n];
+    let progress = 0;
+
+    // Calcola l'incremento per ogni intervallo
+    const interval = 50; // Intervallo in millisecondi
+    const increment = 100 / (duration / interval);
+
+    // Aggiorna la barra di caricamento
+    const loadingInterval = setInterval(() => {
+        progress += increment;
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(loadingInterval); // Ferma l'intervallo quando la barra è piena
+        }
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress + 1);
+    }, interval);
 }

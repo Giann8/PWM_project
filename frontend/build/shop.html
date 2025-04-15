@@ -21,8 +21,9 @@
             <li class="nav-item">
                 <a class="nav-link active " aria-current="page" href="http://localhost:3000/home.html">Home</a>
             </li>
-            <li class="nav-item" id="market">
-                <a class="nav-link active" aria-current="page" href="http://localhost:3000/market.html">Market</a>
+            <li class="nav-item" id="cardMarket">
+                <a class="nav-link active" aria-current="page"
+                    href="http://localhost:3000/cardMarket.html">cardMarket</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
@@ -34,42 +35,60 @@
                 Offset
             </button>
             <div class="dropdown-menu dropdown-menu-end">
-                <li><span class="dropdown-item-text"><b>Monete: </b>
-                        <p id="coins"></p><b>Pacchetti: </b>
+                <li class="md-0"><span class="dropdown-item-text"><b>Monete: </b>
+                        <p id="coins"></p>
+                        <b>Pacchetti: </b>
                         <p id="boostersNumber"></p>
                         </p>
-                    </span></li>
-                <a class="dropdown-item" href="http://localhost:3000/userPage.html">MyPage</a>
+                    </span>
+                </li>
+
+                <div class="dropdown-divider"></div>
+
+                <a class="dropdown-item" href="http://localhost:3000/myPacks.html">My Packs</a>
+                <a class="dropdown-item" href="http://localhost:3000/userPage.html">My Page</a>
+                <a class="dropdown-item" href="http://localhost:3000/album.html">My Album</a>
                 <div class="dropdown-divider"></div>
                 <button class="dropdown-item" onclick="logout()">logout</button>
             </div>
         </div>
 
         <div id="login_nav" class="">
-            <button class="btn btn-primary" id="login-button"
+            <button class="btn btn-outline-warning" id="login-button"
                 onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
-            <button class="btn btn-primary" id="register-button"
+            <button class="btn btn-warning" id="register-button"
                 onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
         </div>
     </div>
 </nav>
+<div id="alerts" class="d-flex justify-content-center sticky-top">
+    <div id="error-alert" class="alert alert-danger sticky-top align-center d-none" role="alert">
+        <div class="d-flex justify-content-between">
+            <p id="error"></p>
+            <button type="button" class="btn-close" aria-label="Close"
+                onclick="document.getElementById('error-alert').classList.add('d-none')"></button>
+        </div>
+        <div class="progress" style="height:3px;">
+            <div id="loading-bar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; "
+                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
 
-    <div id="error-alert"
-        class="alert alert-danger sticky-top align-center d-flex justify-content-between fade d-none"
-         role="alert">
-        <p id="error"></p>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
-            onclick="document.getElementById('error-alert').classList.add('d-none')"></button>
+            </div>
+        </div>
     </div>
 
-    <div id="succesfull-alert"
-        class="alert alert-success sticky-top align-center d-flex justify-content-between fade-in  d-none"
-        role="alert">
-        <p id="success-message"></p>
-        <button type="button" class="btn-close" data-bs-dismiss="success-alert" aria-label="Close"
-            onclick="document.getElementById('succesfull-alert').classList.add('d-none')"></button>
+    <div id="success-alert" class="alert alert-success sticky-top align-center d-none" role="alert">
+        <div class="d-flex justify-content-between">
+            <p id="success"></p>
+            <button type="button" class="btn-close" aria-label="Close"
+                onclick="document.getElementById('success-alert').classList.add('d-none')"></button>
+        </div>
+        <div class="progress" style="height:3px;">
+            <div id="loading-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%; "
+                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
     </div>
-
+</div>
 <div class="container">
     <div id="boosters" class="row justify-content-center">
         <h2 class="text mt-3">Pacchetti</h2>
@@ -79,7 +98,8 @@
                 <h5 id="name" class="card-title">test</h5>
                 <div id="card-description" class="card-body">Carte: 0, Prezzo: 0</div>
                 <button id="buy-button" class="btn btn-outline-secondary mb-2" onclick="checkAndBuyBooster(this)">Compra
-                    pacchetto</button>
+                    pacchetto <span class="spinner-border spinner-border-sm d-none" role="status"
+                        aria-hidden="true"></span></button>
             </div>
         </div>
     </div>
@@ -91,7 +111,8 @@
                 <img id="image" src="" class="card-img-top" alt="...">
                 <h5 id="name" class="card-title">Pugno di monete</h5>
                 <div id="numero-monete" class="card-body">10</div>
-                <button id="buy-coins-1" class="btn btn-primary my-3" onclick="checkAndBuyCoins(10)">1€</button>
+                <button id="buy-coins-1" class="btn btn-primary my-3" onclick="checkAndBuyCoins(10,this)">1€ <span class="spinner-border spinner-border-sm d-none" role="status"
+                    aria-hidden="true"></span></button>
             </div>
         </div>
         <div id="card-coin" class="col md-5" style="max-width: 20rem;">
@@ -99,7 +120,8 @@
                 <img id="image" src="" class="card-img-top" alt="...">
                 <h5 id="name" class="card-title">Pugno di monete</h5>
                 <div id="numero-monete" class="card-body">100</div>
-                <button id="buy-coins-2" class="btn btn-primary my-3" onclick="checkAndBuyCoins(100)">10€</button>
+                <button id="buy-coins-2" class="btn btn-primary my-3" onclick="checkAndBuyCoins(100,this)">10€ <span class="spinner-border spinner-border-sm d-none" role="status"
+                    aria-hidden="true"></span></button>
             </div>
         </div>
         <div id="card-coin" class="col md-5" style="max-width: 20rem;">
@@ -107,8 +129,9 @@
                 <img id="image" src="" class="card-img-top" alt="...">
                 <h5 id="name" class="card-title">Pugno di monete</h5>
                 <div id="numero-monete" class="card-body">500</div>
-                <button id="buy-coins-3" class="btn btn-primary my-3" onclick="checkAndBuyCoins(500)"
-                    value="500">50€</button>
+                <button id="buy-coins-3" class="btn btn-primary my-3" onclick="checkAndBuyCoins(500,this)"
+                    value="500">50€ <span class="spinner-border spinner-border-sm d-none" role="status"
+                    aria-hidden="true"></span></button>
             </div>
         </div>
     </div>
@@ -120,16 +143,20 @@
         showBoosters(boosters);
     }
 
-    async function checkAndBuyCoins(coins) {
-        
+    async function checkAndBuyCoins(coins,button) {
+        showSpinner(button);
         if (checkLogin()) {
             await buyCredits(coins);
         } else {
             window.location.href = "http://localhost:3000/login.html";
         }
+        hideSpinner(button);
+
     }
+
     async function checkAndBuyBooster(button) {
         const card = button.closest('.card');
+        showSpinner(button);
         const nameElement = card.querySelector('.card-title');
 
         if (checkLogin()) {
@@ -137,6 +164,8 @@
         } else {
             window.location.href = "http://localhost:3000/login.html";
         }
+
+        hideSpinner(button);
     }
 
 </script>

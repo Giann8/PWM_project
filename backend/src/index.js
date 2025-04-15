@@ -197,6 +197,14 @@ app.put('/apriPacchetto/:userId', async (req, res) => {
     }
 })
 
+app.put('/apriTuttiPacchetti/:userId', async (req, res) => {
+    try {
+        const result = await lib.apriPacchetti(req.params.userId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
 
 // ####################CARTE E SCAMBI########################
 app.get('/carte/:userId', async (req, res) => {
@@ -226,6 +234,24 @@ app.put('/carte/:userId', async (req, res) => {
     }
 })
 
+app.delete('/carte/:userId/:cardId', async (req, res) => {
+    try {
+        const result = await lib.removeCard(req.params.userId, req.params.cardId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.put('/vendiCarta/:userId/:cardId', async (req, res) => {
+    try {
+        const result = await lib.sellCard(req.params.userId, req.params.cardId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
 app.post('/scambi/:userId', async (req, res) => {
     try {
         const result = await lib.createScambio(req.params.userId, req.body);
@@ -247,6 +273,24 @@ app.get('/scambi', async (_, res) => {
 app.get('/scambi/:userId', async (req, res) => {
     try {
         const result = await lib.getScambiByUserId(req.params.userId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.get('/scambio/:scambioId', async (req, res) => {
+    try {
+        const result = await lib.getScambioById(req.params.scambioId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.put('/accettaScambio/:userId/:scambioId', async (req, res) => {
+    try {
+        const result = await lib.accettaScambio(req.params.userId, req.params.scambioId);
         res.status(200).json(result);
     } catch (err) {
         lib.handleError(err, res);

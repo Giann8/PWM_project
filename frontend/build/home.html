@@ -38,74 +38,80 @@
                         Offset
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
-                        <li><span class="dropdown-item-text"><b>Monete: </b>
-                                <p id="coins"></p><b>Pacchetti: </b>
+                        <li class="md-0"><span class="dropdown-item-text"><b>Monete: </b>
+                                <p id="coins"></p>
+                                <b>Pacchetti: </b>
                                 <p id="boostersNumber"></p>
                                 </p>
-                            </span></li>
-                        <a class="dropdown-item" href="http://localhost:3000/userPage.html">MyPage</a>
+                            </span>
+                        </li>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item" href="http://localhost:3000/myPacks.html">My Packs</a>
+                        <a class="dropdown-item" href="http://localhost:3000/userPage.html">My Page</a>
+                        <a class="dropdown-item" href="http://localhost:3000/album.html">My Album</a>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" onclick="logout()">logout</button>
                     </div>
                 </div>
 
                 <div id="login_nav" class="">
-                    <button class="btn btn-primary" id="login-button"
+                    <button class="btn btn-outline-warning" id="login-button"
                         onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
-                    <button class="btn btn-primary" id="register-button"
+                    <button class="btn btn-warning" id="register-button"
                         onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
                 </div>
             </div>
         </nav>
-        <div class="container">
-            <div id="carosello" class="card" style="height: 20rem; width: 100%; margin-top: 5rem;">
-                <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
-                    <div id="carousel-inner" class="carousel-inner align-items-center">
+        <div class="container align-content-center">
+            <h1 class="text-center m-3">Ecco alcune carte che potresti trovare</h1>
+            <div class="d-flex justify-content-center">
+                <div id="carosello" class="card m-3 d-flex " style="height:20rem; width:20rem;">
+                    <div id="carouselExampleAutoplaying" class="carousel slide card-body" data-bs-ride="carousel">
+                        <div class="carousel-inner align-items-center m-4">
+                        </div>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying"
-                        data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying"
-                        data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
+                </div>
+                <div id="carosello" class="card m-3 align-content-center" style="height:20rem; width:20rem;">
+                    <div id="carouselExampleAutoplaying" class="carousel slide card-body m-4" data-bs-ride="carousel">
+                        <div class="carousel-inner align-items-center">
+                        </div>
+                    </div>
+                </div>
+                <div id="carosello" class="card m-3 align-content-center" style="height:20rem; width:20rem;">
+                    <div id="carouselExampleAutoplaying" class="carousel slide card-body m-4" data-bs-ride="carousel">
+                        <div class="carousel-inner align-items-center">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+
     </div>
     <script src="scripts/lib.js"></script>
     <script>
-        if (checkLogin()) {
-            document.getElementById("coins").innerHTML = localStorage.getItem("coins");
-            document.getElementById("boostersNumber").innerHTML = localStorage.getItem("boostersNumber");
-        }
 
         onload = async () => {
             heroes = await getRandomHeroes(5);
-            showHeroCarousel(heroes);
+            heroes2 = await getRandomHeroes(5);
+            heroes3 = await getRandomHeroes(5);
+            showHeroCarousel(heroes, 0);
+            showHeroCarousel(heroes2, 1);
+            showHeroCarousel(heroes3, 2);
+
         }
 
-        function showHeroCarousel(heroes) {
+        function showHeroCarousel(heroes, n) {
             for (i = 0; i < heroes.length; i++) {
-                if (i == 1) {
-                    document.getElementById("carousel-inner").innerHTML +=
-                        `<div class="carousel-item active text-center w-100 h-100" >
-                        <img src="${heroes[i].image}" class="rounded mx-auto d-block"  alt="${heroes[i].name}">
-                              <div class="carousel-caption d-none d-md-block">
-                             <h5>${heroes[i].name}</h5>
-                            </div>
+
+                document.getElementsByClassName("carousel-inner align-items-center")[n].innerHTML +=
+                    `<div class="carousel-item text-center card border-round " style="width:15rem; height:15rem;">
+                        <img src="${heroes[i].image}" class="card-img-top img-fluid"  alt="${heroes[i].name}" style="height:100%">
                         </div>`;
-                } else {
-                    document.getElementById("carousel-inner").innerHTML +=
-                        `<div class="carousel-item text-center w-100 h-100">
-                        <img src="${heroes[i].image}" class="rounded mx-auto d-block"  alt="${heroes[i].name}">
-                                <div class="carousel-caption d-none d-md-block">
-                                 <h5>${heroes[i].name}</h5>
-                                </div>
-                        </div>`;
+                if (i == 0) {
+                    document.getElementsByClassName("carousel-item text-center card ")[5 * n].classList.add("active");
                 }
             }
         }

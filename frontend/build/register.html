@@ -13,6 +13,34 @@
 
 <body>
     <div class="container">
+        <div id="alerts" class="d-flex justify-content-center sticky-top">
+            <div id="error-alert" class="alert alert-danger sticky-top align-center d-none" role="alert">
+                <div class="d-flex justify-content-between">
+                    <p id="error"></p>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="document.getElementById('error-alert').classList.add('d-none')"></button>
+                </div>
+                <div class="progress" style="height:3px;">
+                    <div id="loading-bar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; "
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="success-alert" class="alert alert-success sticky-top align-center d-none" role="alert">
+                <div class="d-flex justify-content-between">
+                    <p id="success"></p>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="document.getElementById('success-alert').classList.add('d-none')"></button>
+                </div>
+                <div class="progress" style="height:3px;">
+                    <div id="loading-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%; "
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="scheda-large" class="container p-5 align-items-center" style=" width: 35rem;">
             <h1 class="card-title">Registrazione</h1>
             <form id="register-form" class="needs-validation" method="dialog" novalidate>

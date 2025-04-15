@@ -1,6 +1,8 @@
 const { MongoClient, ObjectId, Db } = require('mongodb')
 const crypto = require('crypto');
 const { getFromMarvel, getRandomInt } = require('./marvel');
+const { get } = require('http');
+const { createBrotliDecompress } = require('zlib');
 
 
 
@@ -94,7 +96,7 @@ async function hasBooster(userId, boosterId) {
 
     const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(userId), [`Boosters.${boosterId}`]: { $gt: 0 } })
     await connection.close();
-    console.log(user);
+
     if (user != null) {
         return true
     }
@@ -502,7 +504,7 @@ async function creaPacchetto(body) {
 
 
     if (await checkBooster(body.boosterName)) {
-        console.log(body.boosterName)
+
         throw new Error("Format: Pacchetto già esistente")
     }
 
@@ -561,17 +563,23 @@ async function getPacchetti() {
 }
 
 async function getPacchettiByUserId(userId) {
-    const connection = await client.connect();
-    try {
-        const db = connection.db(DB_NAME);
-        const user = await db.collection("Users").findOne({ _id: ObjectId.createFromHexString(userId) });
-        if (user.Boosters.length <= 0) {
-            throw new Error("Format: Nessun pacchetto trovato")
-        }
-        return user.Boosters;
-    } finally {
-        await connection.close();
+
+    const user = await getUserById(userId);
+
+    const boosters = [];
+
+    var total = 0;
+    for (const booster in user.boosters) {
+        var pacchetto = await getPacchettoById(booster);
+        boosters.push({ booster: pacchetto, quantity: user.boosters[booster] });
+        total += user.boosters[booster];
     }
+
+    if (boosters.length <= 0) {
+        throw new Error("Format: Nessun pacchetto trovato")
+    }
+
+    return { boosters: boosters, total: total };
 }
 
 /**
@@ -605,11 +613,10 @@ async function compraPacchetto(id, boosterName) {
 
 
     const booster = await getBoosterByName(boosterName);
-    const user = await getUserById(id);
-    console.log(user)
-    console.log(JSON.stringify(booster._id))
+    var user = await getUserById(id);
+
     if (user.coins >= booster.cost) {
-        await addPersonalBoosters(id, booster);
+        user = await addPersonalBoosters(id, booster);
         var result = await updateCoins(id, -booster.cost);
         return { message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result };
     } else {
@@ -642,6 +649,29 @@ async function apriPacchetto(userId, boosterName) {
     return { message: "Pacchetto aperto", heroes: heroes, user: user };
 
 }
+/**
+ * Funzione per aprire tutti i pacchetti
+ * @param {*} userId 
+ */
+async function apriPacchetti(userId) {
+    var totalHeroes = [];
+
+    const possessedBoosters = await getPacchettiByUserId(userId);
+    for (let j = 0; j < possessedBoosters.boosters.length; j++) {
+
+        const booster = possessedBoosters.boosters[j];
+
+        for (let i = 0; i < booster.quantity; i++) {
+
+            const heroesFound = await apriPacchetto(userId, booster.booster.boosterName);
+
+            totalHeroes.push.apply(totalHeroes, heroesFound.heroes);
+        }
+    };
+
+
+    return { message: "Pacchetti aperti", heroes: totalHeroes, quantity: totalHeroes.length };
+}
 
 /**
  * Funzione per ottenere le carte dell'utente 
@@ -650,11 +680,39 @@ async function apriPacchetto(userId, boosterName) {
  */
 async function getUserCards(userId) {
     const user = await getUserById(userId);
-    if (user.album.length > 0) {
-        return user.album;
+    console.log(user.album)
+    console.log(JSON.stringify(user.album).length)
+    album = [];
+    if (JSON.stringify(user.album).length > 0) {
+        for (const card in user.album) {
+            const cardData = await getCardById(card);
+            if (cardData) {
+                album.push({ card: cardData.card, quantity: user.album[card] });
+            }
+        }
+        return album;
     }
     throw new Error("Format: L'utente non possiede nessuna carta");
 }
+/**
+ * 
+ * @param {String} cardId 
+ */
+async function getCardById(cardId) {
+    const connection = await client.connect();
+
+    try {
+        const db = connection.db(DB_NAME);
+        const card = await db.collection('Marvel').findOne({ marvelId: Number(cardId) });
+        if (card == null) {
+            throw new Error("Format: Carta non trovata")
+        }
+        return { card: card };
+    } finally {
+        await connection.close();
+    }
+}
+
 /**
  * 
  * @param {*} userId 
@@ -685,23 +743,29 @@ async function removeCard(userId, cardId) {
     const cardQuantity = user.album[cardId];
     const connection = await client.connect();
     try {
+        var updated;
         if (cardQuantity && cardQuantity > 1) {
-            await connection.db(DB_NAME).collection("Users").updateOne({ _id: ObjectId.createFromHexString(id) }, {
+            updated = await connection.db(DB_NAME).collection("Users").updateOne({ _id: ObjectId.createFromHexString(userId) }, {
                 $inc: {
                     [`album.${cardId}`]: -1
                 }
             });
         } else if (cardQuantity && cardQuantity === 1) {
-            await connection.db(DB_NAME).collection("Users").updateOne({ _id: ObjectId.createFromHexString(id) }, {
-                $unset: {
-                    [`album.${cardId}`]: ""
-                }
-            });
+            throw new Error("Format: non puoi scambiare o vendere l'ultima copia di una carta")
         }
-        return { message: "Carta eliminata", album: user.album }
+        if (updated == null) {
+            throw new Error("Format: Carta non trovata")
+        }
+        return { message: "Carta eliminata", album: user.album, updated: updated }
     } finally {
         await connection.close();
     }
+}
+
+async function sellCard(userId, cardId) {
+    await removeCard(userId, cardId);
+    const coins = await updateCoins(userId, 10);
+    return { message: "Carta venduta, ti sono state accreditate 10 monete", currentCoins: coins }
 }
 
 //################### EXCHANGES #######################
@@ -755,6 +819,25 @@ async function deleteScambio(exchangeId, userId) {
 
 }
 
+async function getScambioById(exchangeId) {
+    if (exchangeId == null) {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchange = await db.collection('Exchanges').findOne({ _id: ObjectId.createFromHexString(exchangeId) });
+
+        if (exchange == null) {
+            throw new Error("Scambio non trovato")
+        } else {
+            return exchange;
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
 async function getScambi() {
 
     const connection = await client.connect();
@@ -790,6 +873,58 @@ async function getScambiByUserId(userId) {
     }
 }
 
+async function accettaScambio(exchangeId, userId) {
+    const scambio = await getScambioById(exchangeId);
+    const userCreatorId = scambio.userId;
+
+    var userRemoved = [];
+    var creatorRemoved = [];
+    var userAdded = [];
+    var creatorAdded = [];
+
+    try {
+        for (carta in scambio.carteOfferte) {
+
+            await removeCard(userCreatorId, carta.marvelId)
+            creatorRemoved.push(carta.marvelId);
+            await addCard(userId, carta.marvelId)
+            userAdded.push(carta.marvelId)
+
+        }
+
+        for (carta in scambio.carteRichieste) {
+            await removeCard(userId, carta.marvelId)
+            userRemoved.push(carta.marvelId);
+            await addCard(userCreatorId, card.marvelId);
+            creatorAdded.push(carta.marvelId);
+        }
+
+    } catch (err) {
+        if (userRemoved.length > 0) {
+            for (carta in userRemoved) {
+                await addCard(userId, carta.marvelId);
+            }
+        }
+        if (creatorRemoved.length > 0) {
+            for (carta in creatorRemoved) {
+                await addCard(userCreatorId, carta.marvelId);
+            }
+        }
+        if (creatorAdded.length > 0) {
+            for (carta in creatorAdded) {
+                await removeCard(userCreatorId, carta.marvelId);
+            }
+        }
+        if (userAdded.length > 0) {
+            for (carta in userAdded) {
+                await removeCard(userID, carta.marvelId);
+            }
+        }
+        throw new Error("Format: an error occurred, exchange stopped and cards returned");
+    }
+    await deleteScambio(exchangeId, userCreatorId);
+    return { message: "Scambio completato con successo" }
+}
 
 //MARVEL RANDOM PICK
 
@@ -830,7 +965,7 @@ async function getRandomHeroDB(n = 1) {
     const heroes = await getHeroes();
     for (i = 0; i < n;) {
         offset = getRandomInt(0, heroes.length);
-        console.log(offset);
+
         hero = heroes[offset];
         if (hero != null) {
             result.push(hero);
@@ -879,12 +1014,17 @@ module.exports = {
     getPacchettoById,
     compraPacchetto,
     apriPacchetto,
+    apriPacchetti,
     getUserCards,
+    getCardById,
     addCard,
     removeCard,
+    sellCard,
     createScambio,
     getScambi,
+    getScambioById,
     getScambiByUserId,
+    accettaScambio,
     deleteScambio,
     getRandomHero,
     getRandomHeroDB,
