@@ -30,8 +30,13 @@
                             href="http://localhost:3000/cardMarket.html">cardMarket</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link active " aria-current="page"
+                            href="http://localhost:3000/cards.html">Cards</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
                     </li>
+
                 </ul>
                 <div id="user_nav" class="nav-item dropdown d-none">
                     <button id="username" type="button" class="btn btn-secondary dropdown-toggle"
@@ -94,23 +99,23 @@
             </div>
         </div>
 
+
+
         <div class="album">
-            <div id="cards-container" class="d-flex flex-wrap justify-content-center">
-                <div id="loading" class="d-flex justify-content-center d-none">
-                    <div class="d-flex justify-content-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
+            <div id="loading" class="d-flex justify-content-center align-content-center d-none">
+                <div class="spinner-border text-warning m-5" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-                <div id="card-hero" class="card m-2 d-none h-80" style="width:10rem;">
-                    <img src="" class="card-img-top img-fluid" alt="">
+            </div>
+            <div id="container" class="d-flex flex-wrap justify-content-center">
+                <div id="card-hero" class="card m-2 d-none h-80" style="width:10rem; ">
+                    <img src="assets/Carte_hp.jpg" class="card-img-top img-fluid" style="width: 100%; height: 40%;" alt="">
                     <h5 class="card-title">nome eroe
                     </h5>
-                    <div class="card-body">
-                        <div class="card-description d-block " style="max-width: 100%;">
-
+                    <div class="card-body" style="transform: rotate(0);">
+                        <div class="card-description d-block " style="max-width: 100%; height:100%">
                         </div>
+                        <a href="#" class="text-warning stretched-link"></a>
                     </div>
                     <div class="card-footer text-center">
                         <div class="card-number"><b>Ne possiedi:</b> <span class="badge text-bg-danger"> numero
@@ -121,24 +126,42 @@
                     </div>
                 </div>
             </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item d-none">
+                        <a class="page-link">
+
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
         </div>
     </div>
 
+
     <script src="scripts/lib.js"></script>
     <script>
+        query = window.location.search;
+        param = new URLSearchParams(query);
+        var pageNumber = Number(param.get('pageNumber'));
+        if (!pageNumber > 0) {
+            pageNumber = 1
+        }
 
         onload = async () => {
-            showSpinner();
+            showSpinner()
             if (!checkLogin()) {
                 console.log("Non sei loggato");
                 window.location.href = "http://localhost:3000/login.html";
             } else {
-                var heroes = await getMyHeroes();
+                var totalCards = await getMyCards(pageNumber);
+                var totalPages = Math.ceil(totalCards / 20);
+                pagination(pageNumber, totalPages,"album.html?pageNumber=");
             }
         }
 
-        async function getMyHeroes() {
-
+        async function getMyCards(currentPage) {
             var userId = JSON.parse(localStorage.getItem('userId'));
 
             const options = {
@@ -148,23 +171,28 @@
                     'Content-Type': 'application/json'
                 }
             }
-
-            await fetch("http://localhost:3001/carte/" + userId + "?apikey=123456", options)
+            var totalCards = 1;
+            const response = await fetch("http://localhost:3001/carte/" + userId + "/" + currentPage + "?apikey=123456", options)
                 .then(async res => {
                     json = await res.json();
                     return { status: res.status, json: json };
                 })
                 .then(({ status, json }) => {
                     if (status == 200) {
-                        showCards(json);
-                        hideSpinner();
-                    } else if (status == 400) {
+                        console.log(json)
+                        totalCards = json.totalCards;
+                        showCards(json.album);
+                    } else if (status == 400 && json.message == "Nessuna carta trovata") {
                         document.getElementById("cards-container").innerHTML = "<h2 class='text'>Non hai carte</h2>";
+                    } else {
+                        showAlert("error", json.error)
                     }
                 })
                 .catch(err => {
-                    console.log(err);
+                    console.log(err)
                 })
+            hideSpinner()
+            return totalCards;
         }
 
 
@@ -172,31 +200,43 @@
             var card = document.getElementById('card-hero');
             for (let i = 0; i < heroes.length; i++) {
                 var hero = heroes[i].card;
+
                 var clone = card.cloneNode(true);
                 var image = clone.getElementsByClassName('card-img-top')[0];
                 var name = clone.getElementsByClassName('card-title')[0];
                 var description = clone.getElementsByClassName('card-description')[0];
                 var numberQuantity = clone.getElementsByClassName('card-number')[0];
                 var sellCard = clone.getElementsByClassName('btn')[0];
+                var cardPage = clone.getElementsByClassName('stretched-link')[0];
+
+                cardPage.href = `heroCard.html?cardId=${hero.id}`;
                 name.innerHTML = `<b>${hero.name}</b>`;
-                image.src = hero.image;
+                
+                if (hero.image != "" && hero.image != null) {
+                    image.src = hero.image;
+                }
+
 
                 if (description != null && hero.description != "") {
                     description.innerHTML = `<div class="row">
-                                <div class="col-2 text-truncate" style="max-width: 100%;">
+                                <div class="col-2 text-truncate" style="width: 100%; height:auto">
                                     ${hero.description}
                                 </div>
                                 </div>
                             `;
                 } else {
+
                     description.innerHTML = `<b class="text-center"><i>-- NO DATA --</i></b>`
+
                 }
+
                 if (heroes[i].quantity != null && numberQuantity != null) {
                     numberQuantity.innerHTML = `<b>Ne possiedi:</b> <span class="badge text-bg-danger">${heroes[i].quantity}</span>`;
                 }
+
                 if (heroes[i].quantity > 1) {
                     sellCard.classList.remove('disabled');
-                    sellCard.setAttribute("onclick", `sellCard(${hero.marvelId},this)`);
+                    sellCard.setAttribute("onclick", `sellCard(${JSON.stringify(hero.id)},this)`);
                     sellCard.innerHTML = "Vendi";
                 }
 
@@ -205,6 +245,8 @@
             }
 
         }
+
+
         function sellCard(heroId, button) {
             var card = button.closest('.card');
             var cardQuantity = card.getElementsByClassName('card-number')[0];
@@ -233,8 +275,8 @@
                             button.setAttribute(onclick, `showAlert('error',\`non puoi vendere l'ultima copia di questa carta\`)`);
                             button.innerHTML = "Non vendibile";
                         }
-                            document.getElementById("coins").innerHTML = JSON.stringify(json.currentCoins);
-                            cardQuantity.innerHTML = `<b>Ne possiedi:</b> <span class="badge text-bg-danger">${currentQuantity - 1}</span>`;
+                        document.getElementById("coins").innerHTML = JSON.stringify(json.currentCoins);
+                        cardQuantity.innerHTML = `<b>Ne possiedi:</b> <span class="badge text-bg-danger">${currentQuantity - 1}</span>`;
                     } else if (status == 400) {
                         showAlert("error", "Errore nella vendita della carta");
                     }
@@ -245,15 +287,5 @@
         }
 
 
-
-        document.onreadystatechange = function () {
-            if (document.readyState !== "complete") {
-                document.querySelector(".spinner-border").classList.remove("d-none");
-                document.querySelector(".album").classList.add("d-none");
-            } else {
-                document.querySelector(".spinner-border").classList.add("d-none");
-                document.querySelector(".album").classList.remove("d-none");
-            }
-        }
     </script>
 </body>

@@ -1,5 +1,5 @@
 const apikey = 123456;
-
+const url = "http://localhost:3001"
 
 function logout() {
     localStorage.removeItem('userId');
@@ -40,7 +40,7 @@ async function login() {
         })
     }
 
-    await fetch('http://localhost:3001/login?apikey=123456', options)
+    await fetch(url + '/login?apikey=123456', options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -182,7 +182,7 @@ async function register() {
             username: document.getElementById('username').value
         })
     }
-    await fetch('http://localhost:3001/register?apikey=123456', options)
+    await fetch(url + '/register?apikey=123456', options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -241,7 +241,7 @@ async function getUserInfo() {
         }
     }
 
-    await fetch('http://localhost:3001/users/' + userId + '?apikey=123456', options)
+    await fetch(url + '/users/' + userId + '?apikey=123456', options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -294,7 +294,7 @@ async function updateEmail() {
         })
     }
 
-    await fetch('http://localhost:3001/users/' + userId + '/updateEmail?apikey=' + apikey, options)
+    await fetch(url + '/users/' + userId + '/updateEmail?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -342,7 +342,7 @@ async function updatePassword() {
         })
     }
 
-    await fetch('http://localhost:3001/users/' + userId + '/updatePassword?apikey=' + apikey, options)
+    await fetch(url + '/users/' + userId + '/updatePassword?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -379,7 +379,7 @@ async function deleteAccount() {
         }
     }
 
-    await fetch('http://localhost:3001/deleteUser/' + userId + '?apikey=' + apikey, options)
+    await fetch(url + '/deleteUser/' + userId + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -417,7 +417,7 @@ async function updateUsername() {
         })
     }
 
-    await fetch('http://localhost:3001/users/' + userId + '/updateUsername?apikey=' + apikey, options)
+    await fetch(url + '/users/' + userId + '/updateUsername?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -455,7 +455,7 @@ async function getBoosters() {
 
     boosters = null;
 
-    await fetch('http://localhost:3001/pacchetti?apikey=' + apikey, options)
+    await fetch(url + '/pacchetti?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -514,7 +514,7 @@ async function buyBooster(boosterName) {
         })
     }
 
-    const response = await fetch('http://localhost:3001/pacchetti/compraPacchetto/' + userId + '?apikey=' + apikey, options)
+    const response = await fetch(url + '/pacchetti/compraPacchetto/' + userId + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -524,7 +524,7 @@ async function buyBooster(boosterName) {
                 localStorage.setItem("coins", json.coins);
                 localStorage.setItem("boostersNumber", Number(localStorage.getItem("boostersNumber")) + 1);
                 document.getElementById("coins").innerHTML = json.coins;
-                document.getElementById("boostersNumber").innerHTML = Number(localStorage.getItem("boostersNumber")) + 1;
+                document.getElementById("boostersNumber").innerHTML = Number(localStorage.getItem("boostersNumber"));
                 showAlert("success", "<strong>Booster acquistato con successo</strong>");
             } else {
                 showAlert("error", `<strong>Errore!</strong>` + json.error)
@@ -535,6 +535,7 @@ async function buyBooster(boosterName) {
             console.log(err);
         })
 }
+
 function showAlert(type, message) {
 
     document.getElementById(type + '-alert').classList.remove("d-none");
@@ -565,7 +566,7 @@ async function buyCredits(coins) {
         })
     }
 
-    await fetch('http://localhost:3001/users/' + userId + '/updateCoins?apikey=' + apikey, options)
+    await fetch(url + '/users/' + userId + '/updateCoins?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -592,7 +593,7 @@ async function getScambi() {
         }
     }
     scambi = [];
-    await fetch('http://localhost:3001/scambi?apikey=' + apikey, options)
+    await fetch(url + '/scambi?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -620,7 +621,7 @@ async function getMyScambi() {
         }
     }
     mieiScambi = [];
-    await fetch('http://localhost:3001/scambi/' + userId + '?apikey=' + apikey, options)
+    await fetch(url + '/scambi/' + userId + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json };
@@ -646,7 +647,7 @@ async function getHeroes() {
         }
     };
     heroes = [];
-    await fetch('http://localhost:3001/heroes?apikey=' + apikey, options)
+    await fetch(url + '/heroes?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json };
@@ -672,7 +673,7 @@ async function getRandomHeroes(numberOfHeroes) {
         }
     };
     heroes = [];
-    await fetch('http://localhost:3001/randomHeroes/' + numberOfHeroes + '?apikey=' + apikey, options)
+    await fetch(url + '/randomHeroes/' + numberOfHeroes + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json };
@@ -688,13 +689,105 @@ async function getRandomHeroes(numberOfHeroes) {
     return heroes;
 }
 
-function showHeroesPossessed(heroes, modal) {
-    if (heroes.length == 0) {
+async function getAllCards() {
+
+    const options = {
+        method: "GET",
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
+
+    const allCards = await fetch('http://localhost:3001/heroes?apikey=' + apikey, options)
+        .then(async res => {
+            json = await res.json();
+            return ({ status: res.status, json: json })
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                return json;
+            }
+        })
+        .catch(err => {
+            showAlert('error', 'Errore di connessione al server');
+            hideSpinner();
+        });
+    return allCards;
+}
+
+async function getCardById(cardId) {
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
+
+    const card = await fetch(url + `/cartaSingola/${cardId}?apikey=` + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json };
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                return json;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    return card
+}
+
+async function getUserCardById(cardId, userId) {
+    if (userId == null)
+        var userId = JSON.parse(localStorage.getItem('userId'));
+
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
+    var card = null;
+    await fetch(url + `/carta/${userId}/${cardId}?apikey=` + apikey, options)
+        .then(async (res) => {
+            json = await res.json();
+            return { status: res.status, json: json };
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                card = json;
+            } else {
+                card = null;
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+    return card;
+}
+
+async function userHasCard(cardId, userId) {
+    const card = await getUserCardById(cardId, userId);
+    console.log(card != null)
+    return card != null;
+}
+
+function showFoundCards(heroes, modal) {
+
+
+    if (heroes.length <= 0) {
         return;
     }
 
+
     var card = document.getElementById('card-hero');
 
+    console.log(heroes.length);
     for (i = 0; i < heroes.length; i++) {
         showCard(card, heroes[i], true);
     }
@@ -705,48 +798,47 @@ function showHeroesPossessed(heroes, modal) {
     }
 }
 
-/**
- * 
- * @param {*} allHeroes 
- * @param {Object[]} myHeroes 
- */
-function showHeroes(allHeroes, myHeroes) {
-    var card = document.getElementById('card-hero');
-    for (i = 0; i < allHeroes.length; i++) {
-        if (!myHeroes.includes(allHeroes[i])) {
-            var hero = allHeroes[i];
-            var clone = card.cloneNode(true);
-            var image = clone.getElementsByClassName('card-img-top')[0];
-            var name = clone.getElementsByClassName('card-title')[0];
-            var description = clone.getElementsByClassName('card-description')[0];
-
-            image.src = hero.image;
-            name.innerHTML = `<b>${hero.name}</b>`;
-
-            if (description != null)
-                description.innerHTML = `<p>${hero.description}</p>`;
-
-
-            clone.classList.remove('d-none');
-            card.after(clone);
-        } else {
-            showHeroesPossessed(allHeroes[i], false);
-        }
-    }
-}
 function showCard(card, hero, possessed) {
     var clone = card.cloneNode(true);
     var image = clone.getElementsByClassName('card-img-top')[0];
     var name = clone.getElementsByClassName('card-title')[0];
     var description = clone.getElementsByClassName('card-description')[0];
+    var house = clone.getElementsByClassName('card-house')[0];
+    var cardPage = clone.getElementsByClassName('stretched-link')[0];
 
-    image.src = hero.image;
+    if (cardPage != undefined) {
+        cardPage.href = "heroCard.html?cardId=" + hero.id;
+    }
+    if (hero.image != "" && hero.image != null) {
+        image.src = hero.image;
+    }
+
+    image.style = "width: 100%; height: 100%; object-fit: cover;";
     name.innerHTML = `<b>${hero.name}</b>`;
-    if (description != null)
-        description.innerHTML = `<p>${hero.description}</p>`;
 
     if (!possessed) {
+        console.log(possessed)
         image.style.filter = "grayscale(1)";
+        description.innerHTML = `<p>Non possiedi questa carta</p>`
+        house.innerHTML = "";
+
+    } else {
+
+        if (description != undefined) {
+            if (description != undefined && hero.wand.wood != "") {
+                description.innerHTML = `<h5>Wand:</h5><p><b>Wood:</b> ${hero.wand.wood}</p><p><b>Core:</b> ${hero.wand.core}</p>`;
+            } else {
+                description.innerHTML = `<p>No wand</p>`;
+            }
+        }
+
+        if (house != undefined) {
+            if (house != null && hero.house != "") {
+                house.innerHTML = `<p><b>House:</b> ${hero.house}</p>`;
+            } else {
+                house.innerHTML = `<p>No house</p>`;
+            }
+        }
     }
 
     clone.classList.remove('d-none');
@@ -767,11 +859,14 @@ if (!document.URL.includes("register.html") && !document.URL.includes("login.htm
     document.getElementById("boostersNumber").innerHTML = localStorage.getItem("boostersNumber");
 }
 
+
 function showSpinner(button) {
     if (button == null) {
         document.getElementById("loading").classList.remove('d-none');
+        document.getElementById("container").classList.add('d-none');
         return;
     }
+
     const card = button.closest('.card');
     const spinner = card.querySelector('.spinner-border');
     spinner.classList.remove('d-none');
@@ -779,12 +874,57 @@ function showSpinner(button) {
 
 function hideSpinner(button) {
     if (button == null) {
-        document.getElementById("loading").classList.remove('d-none');
+        document.getElementById("loading").classList.add('d-none');
+        document.getElementById("container").classList.remove('d-none');
         return;
     }
+
     const card = button.closest('.card');
     const spinner = card.querySelector('.spinner-border');
     spinner.classList.add('d-none');
+}
+
+function pagination(currentPage, totalPages, linkPage) {
+    const item = document.getElementsByClassName('page-item')[0];
+    for (i = 2; i >= 0; i--) {
+
+        const clone = item.cloneNode(true);
+        const link = clone.getElementsByClassName('page-link')[0];
+        switch (i) {
+            case 0:
+                if (currentPage == 1) {
+                    link.classList.add('disabled');
+                }
+                link.innerHTML = currentPage - 1;
+                link.href = linkPage + (currentPage - 1);
+                break;
+            case 1:
+                link.innerHTML = currentPage;
+                link.href = linkPage + currentPage;
+                link.classList.add('active');
+                break;
+            case 2:
+                if (currentPage == totalPages) {
+                    link.classList.add('disabled');
+                }
+                link.innerHTML = currentPage + 1;
+                link.href = linkPage + (currentPage + 1);
+                break;
+            default:
+                break;
+        }
+        clone.classList.remove('d-none');
+        item.after(clone);
+    }
+
+}
+
+function paginatedCards(allCards, pageNumber, numberOfCards) {
+    var currentCards = [];
+    for (let i = (pageNumber - 1) * numberOfCards; i < pageNumber * numberOfCards; i++) {
+        currentCards.push(allCards[i]);
+    }
+    return currentCards;
 }
 
 function startLoadingBar(duration, n) {
@@ -805,7 +945,118 @@ function startLoadingBar(duration, n) {
             progress = 100;
             clearInterval(loadingInterval); // Ferma l'intervallo quando la barra è piena
         }
+
         progressBar.style.width = `${progress}%`;
-        progressBar.setAttribute('aria-valuenow', progress + 1);
+        progressBar.setAttribute('aria-valuenow', progress);
     }, interval);
+}
+
+function showOffers(offers) {
+    const offerTemplate = document.getElementById("offer");
+
+    for (let i = 0; i < offers.length; i++) {
+        const offer = offers[i];
+        const clone = offerTemplate.cloneNode(true);
+
+
+        clone.querySelector("#offer-creator").textContent = offer.creator;
+
+        clone.querySelector("#offered-card").textContent = offer.carteOfferte.map((carta) => (carta.name)).join(", ");
+        clone.querySelector("#requested-card").textContent = offer.carteRichieste.map((carta) => (carta.name)).join(", ");
+        var acceptButton = clone.querySelector(".btn");
+
+
+        if (localStorage.getItem("userId").valueOf() == JSON.stringify(offer.userId)) {
+            acceptButton.classList.add("disabled");
+            acceptButton.innerHTML = "<b>Non puoi accettare la tua stessa offerta</b"
+        } else {
+            acceptButton.setAttribute("onclick", `accettaScambio('${offer._id}', this)`);
+        }
+
+        clone.classList.remove("d-none"); // Rimuove la classe nascosta
+        offerTemplate.after(clone); // Aggiunge il clone al contenitore
+    }
+    document.getElementById("loading").classList.add('d-none');
+}
+
+async function accettaScambio(scambioId, button) {
+    showSpinner(button);
+    var userId = JSON.parse(localStorage.getItem("userId").valueOf())
+    var scambio = await getScambioById(scambioId);
+    if (scambio.userId == userId) {
+        showAlert("error", "<strong>Non puoi accettare la tua stessa offerta</strong>");
+        hideSpinner(button);
+        return;
+    }
+
+    for (let i = 0; i < scambio.carteOfferte.length; i++) {
+        if (await userHasCard(scambio.carteOfferte[i].id, userId)) {
+            showAlert("error", "<strong>Non puoi accettare questa offerta, possiedi già una delle carte offerte: </strong>" + scambio.carteOfferte[i].name);
+            hideSpinner(button);
+            return;
+        }
+    }
+    for (let i = 0; i < scambio.carteRichieste.length; i++) {
+        const possedute = await getUserCardById(scambio.carteRichieste[i].id, userId);
+        if (possedute == null || possedute.quantity <= 1) {
+            showAlert("error", "<strong>Non puoi accettare questa offerta, non possiedi abbastanza copie della carta richiesta: </strong>" + scambio.carteRichieste[i].name);
+            hideSpinner(button);
+            return;
+        }
+    }
+
+
+    const options = {
+        method: 'PUT',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    }
+    await fetch(url + '/accettaScambio/' + userId + '/' + scambioId + '?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json }
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                showAlert("success", "<strong>Offerta accettata con successo</strong>");
+                window.location.reload();
+            } else {
+                showAlert("error", "<strong>Errore!</strong>" + json.error);
+            }
+        })
+        .catch(err => {
+            showAlert("error", "<strong>Errore generico: </strong>" + err);
+        })
+
+    hideSpinner(button);
+}
+
+async function getScambioById(scambioId) {
+
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+    }
+    var offer = null;
+    await fetch(url + '/scambio/' + scambioId + '?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json }
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                offer = json;
+            } else {
+                offer = null;
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+    return offer;
 }

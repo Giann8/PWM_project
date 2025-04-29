@@ -636,11 +636,12 @@ async function apriPacchetto(userId, boosterName) {
         throw new Error("Format: Non possiedi questo pacchetto");
     }
 
-    const heroes = await getRandomHeroDB(booster.cardNumber)
+    const heroes = await getRandomCards(booster.cardNumber)
+
 
 
     for (let i = 0; i < heroes.length; i++) {
-        await addCard(userId, heroes[i].marvelId);
+        await addCard(userId, heroes[i].id);
     }
 
 
@@ -678,41 +679,82 @@ async function apriPacchetti(userId) {
  * @param {String} userId 
  * @returns 
  */
-async function getUserCards(userId) {
+async function getUserCards(userId, pageNumber) {
     const user = await getUserById(userId);
-    console.log(user.album)
-    console.log(JSON.stringify(user.album).length)
-    album = [];
-    if (JSON.stringify(user.album).length > 0) {
-        for (const card in user.album) {
+
+    var heroNumber = 20;
+    if (pageNumber == null) {
+        pageNumber = 1;
+    }
+    if (pageNumber == "all") {
+        pageNumber = 1;
+        heroNumber = Object.keys(user.album).length
+    }
+
+    var album = [];
+    if (Object.keys(user.album).length > 0) {
+        for (let i = (pageNumber - 1) * heroNumber; i < pageNumber * heroNumber; i++) {
+            const card = Object.keys(user.album)[i];
             const cardData = await getCardById(card);
             if (cardData) {
-                album.push({ card: cardData.card, quantity: user.album[card] });
+                album.push({ card: cardData, quantity: user.album[card] });
             }
         }
-        return album;
+        return { album: album, totalCards: Object.keys(user.album).length };
     }
     throw new Error("Format: L'utente non possiede nessuna carta");
 }
-/**
- * 
- * @param {String} cardId 
- */
-async function getCardById(cardId) {
-    const connection = await client.connect();
 
-    try {
-        const db = connection.db(DB_NAME);
-        const card = await db.collection('Marvel').findOne({ marvelId: Number(cardId) });
-        if (card == null) {
-            throw new Error("Format: Carta non trovata")
-        }
-        return { card: card };
-    } finally {
-        await connection.close();
+async function getUserCardById(userId, cardId) {
+    const user = await getUserById(userId);
+    if (user.album[cardId]) {
+        const card = await getCardById(cardId);
+        return { card: card, quantity: user.album[cardId] };
     }
+    throw new Error("Format: Carta non trovata");
 }
+// /**
+//  * 
+//  * @param {String} cardId 
+//  */
+// async function getCardById(cardId) {
+//     const connection = await client.connect();
 
+//     try {
+//         const db = connection.db(DB_NAME);
+//         var card = await db.collection('Marvel').findOne({ id: Number(cardId) });
+//         if (card == null) {
+//             card = await fetch("https://hp-api.onrender.com/api/character/" + cardId)
+//                 .then(async res => json = await res.json())
+//                 .then(json => { })
+//                 .catch(err => console.log(err));
+//             if (card == null) {
+//                 throw new Error("Format: Carta non trovata");
+//             }
+//         }
+
+//         return { card: card };
+//     } finally {
+//         await connection.close();
+//     }
+// }
+
+async function getCardById(cardId) {
+    var card = null
+    await fetch(`https://hp-api.onrender.com/api/character/` + cardId)
+        .then(async res => {
+            if (res.status == 200) {
+                card = await res.json();
+            } else {
+                throw new Error("Format: Carta non trovata");
+            }
+        })
+        .catch(err => { throw new Error(err) })
+    if (card == null) {
+        throw new Error("Format: Carta non trovata");
+    }
+    return card[0];
+}
 /**
  * 
  * @param {*} userId 
@@ -754,13 +796,14 @@ async function removeCard(userId, cardId) {
             throw new Error("Format: non puoi scambiare o vendere l'ultima copia di una carta")
         }
         if (updated == null) {
-            throw new Error("Format: Carta non trovata")
+            throw new Error("Carta non trovata")
         }
         return { message: "Carta eliminata", album: user.album, updated: updated }
     } finally {
         await connection.close();
     }
 }
+
 
 async function sellCard(userId, cardId) {
     await removeCard(userId, cardId);
@@ -780,6 +823,7 @@ async function createScambio(userId, body) {
     if (body.carteRichieste.length <= 0) {
         throw new Error("Format: Inserisci la carta che desideri")
     }
+    console.log(body)
     const user = await getUserById(userId);
 
     const connection = await client.connect();
@@ -873,7 +917,11 @@ async function getScambiByUserId(userId) {
     }
 }
 
-async function accettaScambio(exchangeId, userId) {
+async function accettaScambio(userId, exchangeId) {
+    if (userId == null || exchangeId == null) {
+        throw new Error("Format: Missing fields")
+    }
+    console.log(exchangeId, userId);
     const scambio = await getScambioById(exchangeId);
     const userCreatorId = scambio.userId;
 
@@ -882,48 +930,99 @@ async function accettaScambio(exchangeId, userId) {
     var userAdded = [];
     var creatorAdded = [];
 
-    try {
-        for (carta in scambio.carteOfferte) {
+    var nonPiuDisponibiliCreator = [];
+    var nonPiuDisponibiliUser = [];
 
-            await removeCard(userCreatorId, carta.marvelId)
-            creatorRemoved.push(carta.marvelId);
-            await addCard(userId, carta.marvelId)
-            userAdded.push(carta.marvelId)
+    try {
+        for (let i = 0; i < scambio.carteOfferte.length; i++) {
+            const carta = scambio.carteOfferte[i];
+            await removeCard(userCreatorId, carta.id)
+            if ((await getUserCardById(userCreatorId, carta.id)).quantity < 2) {
+                nonPiuDisponibiliCreator.push({id:carta.id, name:carta.name});
+            }
+            creatorRemoved.push(carta.id);
+            await addCard(userId, carta.id)
+            userAdded.push(carta.id)
 
         }
 
-        for (carta in scambio.carteRichieste) {
-            await removeCard(userId, carta.marvelId)
-            userRemoved.push(carta.marvelId);
-            await addCard(userCreatorId, card.marvelId);
-            creatorAdded.push(carta.marvelId);
+        for (let i = 0; i < scambio.carteRichieste.length; i++) {
+            const carta = scambio.carteRichieste[i];
+            await removeCard(userId, carta.id)
+            if ((await getUserCardById(userId, carta.id)).quantity < 2) {
+                nonPiuDisponibiliUser.push({id:carta.id, name:carta.name});
+            }
+            userRemoved.push(carta.id);
+            await addCard(userCreatorId, carta.id);
+            creatorAdded.push(carta.id);
         }
 
     } catch (err) {
+        console.log(err);
         if (userRemoved.length > 0) {
-            for (carta in userRemoved) {
-                await addCard(userId, carta.marvelId);
+            for (cartaId in userRemoved) {
+                console.log(cartaId);
+                await addCard(userId, cartaId);
             }
         }
         if (creatorRemoved.length > 0) {
-            for (carta in creatorRemoved) {
-                await addCard(userCreatorId, carta.marvelId);
+            for (cartaId in creatorRemoved) {
+                await addCard(userCreatorId, cartaId);
             }
         }
         if (creatorAdded.length > 0) {
-            for (carta in creatorAdded) {
-                await removeCard(userCreatorId, carta.marvelId);
+            for (cartaId in creatorAdded) {
+                await removeCard(userCreatorId, cartaId);
             }
         }
         if (userAdded.length > 0) {
-            for (carta in userAdded) {
-                await removeCard(userID, carta.marvelId);
+            for (cartaId in userAdded) {
+                await removeCard(userId, cartaId);
             }
         }
         throw new Error("Format: an error occurred, exchange stopped and cards returned");
     }
     await deleteScambio(exchangeId, userCreatorId);
-    return { message: "Scambio completato con successo" }
+
+    console.log(nonPiuDisponibiliCreator);
+    console.log(nonPiuDisponibiliUser);
+
+    var scambiAttiviUser = await getScambiWithSameCards(userId, nonPiuDisponibiliUser);
+    var scambiAttiviCreator = await getScambiWithSameCards(userCreatorId, nonPiuDisponibiliCreator);
+
+    console.log(scambiAttiviUser);
+    console.log(scambiAttiviCreator);
+
+    if (scambiAttiviUser.length > 0) {
+        for (let i = 0; i < scambiAttiviUser.length; i++) {
+            const scambio = scambiAttiviUser[i];
+            const response = await deleteScambio(String(scambio._id), userId);
+        }
+    }
+    if (scambiAttiviCreator.length > 0) {
+        for (let i = 0; i < scambiAttiviCreator.length; i++) {
+            const scambio = scambiAttiviCreator[i];
+            console.log(String(scambio._id));
+            const response = await deleteScambio(String(scambio._id), userCreatorId);
+            console.log(response)
+        }
+    }
+
+    return { message: "Scambio completato con successo, alcuni scambi potrebbero essere stati eliminati" }
+}
+
+async function getScambiWithSameCards(userId, cards) {
+    if (userId == null || cards == null) {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const scambi = await db.collection('Exchanges').find({ userId: userId, carteOfferte: { $in: cards } }).toArray();
+        return scambi;
+    } finally {
+        await connection.close();
+    }
 }
 
 //MARVEL RANDOM PICK
@@ -959,10 +1058,13 @@ async function getHeroes() {
     }
 }
 
-async function getRandomHeroDB(n = 1) {
+
+async function getRandomCards(n = 1) {
     var result = [];
 
-    const heroes = await getHeroes();
+    //const heroes = await getHeroes();
+    const heroes = await getAllMagicians();
+
     for (i = 0; i < n;) {
         offset = getRandomInt(0, heroes.length);
 
@@ -973,9 +1075,46 @@ async function getRandomHeroDB(n = 1) {
         }
     }
 
+    if (result.length <= 0) {
+        throw new Error("fetch error")
+    }
+
     return result;
 }
 
+async function getAllMagicians() {
+    var magicians = [];
+    var response = await fetch(`https://hp-api.onrender.com/api/characters`)
+        .then(async response => {
+            const json = await response.json()
+
+            return { status: response.status, json: json }
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                for (let i = 0; i < json.length; i++) {
+                    const magician = json[i];
+                    magicians.push({
+                        id: magician.id,
+                        name: magician.name,
+                        image: magician.image,
+                        wand: magician.wand,
+                        house: magician.house
+                    })
+                }
+            }
+            return true;
+        })
+        .catch(error => {
+            console.log("error occurred " + error);
+        });
+
+    if (magicians.length <= 0) {
+        throw new Error("fetch error")
+    }
+
+    return magicians
+}
 //Gestione errori
 /**
  * Funzione per gestire gli errori
@@ -983,8 +1122,8 @@ async function getRandomHeroDB(n = 1) {
  * @param {Response} res 
  */
 function handleError(err, res) {
-    var message = err.message.split("Format: ");
     if (err.message.includes("Format: ")) {
+        var message = err.message.split("Format: ");
         res.status(400).json({ error: message[1] })
         return;
     }
@@ -1020,14 +1159,17 @@ module.exports = {
     addCard,
     removeCard,
     sellCard,
+    getUserCardById,
     createScambio,
     getScambi,
     getScambioById,
     getScambiByUserId,
+    getScambiWithSameCards,
     accettaScambio,
     deleteScambio,
     getRandomHero,
-    getRandomHeroDB,
+    getRandomCards,
     getHeroes,
+    getAllMagicians
 }
 

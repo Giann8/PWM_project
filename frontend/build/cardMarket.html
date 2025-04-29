@@ -29,8 +29,12 @@
                         href="http://localhost:3000/cardMarket.html">cardMarket</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link active " aria-current="page" href="http://localhost:3000/cards.html">Cards</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
                 </li>
+
             </ul>
             <div id="user_nav" class="nav-item dropdown d-none">
                 <button id="username" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
@@ -100,17 +104,26 @@
             </div>
             <div class="card-body">
                 <div id="offers-container" class="row justify-content-center">
-                    <div id="offer" class="card">
-                        <div id="offer-body" class="card-body">
-                            <h5 id="offer-creator">Nome Creatore</h5>
-                            <p><b>Carta richiesta:</b>
-                            <div id="requested-card" class="small-card"></div>
-                            <b>Carta offerta:</b>
-                            <div id="offered-card"></div>
-                            </p>
-                            <button id="accept-offer" class="btn btn-primary md-3">Accetta</button>
+                    <div id="loading" class="d-flex justify-content-center align-content-center">
+                        <div class="spinner-border text-warning m-5" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
+
+                    <div id="offer" class="card col-sm-5 m-3 d-none">
+                        <div id="offer-body" class="card-body">
+                            <div class="align-items-center m-3">
+                                <h5 id="offer-creator">Nome Creatore</h5>
+                                <b>Carta richiesta:</b>
+                                <div id="requested-card" class="small-card"></div>
+                                <b>Carta offerta:</b>
+                                <div id="offered-card"></div>
+                            </div>
+
+                            <button id="accept-offer" class="btn btn-primary md-3">Accetta <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span></button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -118,28 +131,90 @@
         <div id="my-offers" class="card mb-3 row">
             <div class="card-header d-flex justify-content-between">
                 <h5>Le tue offerte</h5>
-                <button class="btn btn-success">Crea scambio</button>
+                <button class="btn btn-success" onclick="scambioModalOpen()">Crea scambio</button>
             </div>
             <div class="card-body">
                 <div id="my-offers-container" class="row justify-content-center">
-                    <div id="offer" class="card">
+                    <div id="myOffer" class="card col-sm-5 m-3 d-none">
                         <div id="offer-body" class="card-body">
                             <b>Carta richiesta:</b>
                             <div id="requested-card">Richiesta</div>
                             <b>Carta offerta:</b>
                             <div id="offered-card">Offerta</div>
-                            <button id="delete-offer" class="btn btn-warning md-3">Elimina</button>
+                            <button id="delete-offer" class="btn btn-warning md-3">Elimina <span
+                                    class="spinner-border spinner-border-sm d-none" role="status"
+                                    aria-hidden="true"></span></button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="cardsModal" data-bs-backdrop="backdrop" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="cardsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between">
+                        <h5 class="modal-title" id="cardsModalLabel">Crea Scambio</h5>
+                        <button class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    </div>
+                    <div class="modal-body d-flex justify-content-center">
+                        <div class="mx-2">
+                            <h5>Carte richieste</h5>
+                            <div class="align-items-center">
+                                <div class="selector col-md d-flex my-2">
+                                    <select class="form-select form-select-md carte-richieste"
+                                        aria-label=".form-select-lg example">
+                                        <option class="richiesteDefault" selected>Choose card</option>
+                                        <option class="spinner spinner-border text-warning m-5" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </option>
+                                        <option value="null" class="richieste d-none">carta</option>
+                                    </select>
+                                    <button class="richieste-btn btn btn-outline-secondary "
+                                        onclick="addSelection(this)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mx-2">
+                            <h5>Carte offerte</h5>
+                            <div class="align-items-center">
+                                <div class="selector col-md d-flex my-2 ">
+                                    <select class="form-select form-select-md carte-offerte"
+                                        aria-label=".form-select-lg example">
+                                        <option class="offerteDefault">Choose card</option>
+                                        <option class="spinner spinner-border text-warning m-5" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </option>
+                                        <option value="null" class="offerte d-none">carta</option>
+                                    </select>
+                                    <button class="offerte-btn btn btn-outline-secondary "
+                                        onclick="addSelection(this)">+</button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="pubblica btn btn-secondary" data-bs-dismiss="modal"
+                            onclick="pubblicaOfferta()">Pubblica
+                            offerta</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
     </div>
+
+
+
 
     <script src="scripts/lib.js"></script>
     <script>
         onload = async () => {
             const offers = await getScambi();
+            showOffers(offers);
 
             if (checkLogin()) {
                 const myOffers = await getMyScambi();
@@ -148,65 +223,113 @@
                 } else {
                     showMyOffers(myOffers);
                 }
+
+                const myCards = await getMyCards("all");
+                addCardOptions(myCards, "offerte");
+
+                if (myCards.length > 0) {
+                    document.getElementsByClassName("spinner")[1].classList.add("d-none")
+                }
+
+                const allCards = await getAllCards();
+
+                addCardOptions(allCards, "richieste");
+
+                if (allCards.length > 0) {
+                    document.getElementsByClassName("spinner")[0].classList.add("d-none")
+                }
+
+
             } else {
                 document.getElementById("my-offers-container").innerHTML = `<h2 class="text-center">Devi loggarti per vedere le tue offerte</h2>`;
             }
-            showOffers(offers);
+
         }
 
-        function showOffers(offers) {
-            const offersContainer = document.getElementById("offers-container");
-            offersContainer.innerHTML = "";
-            for (let i = 0; i < offers.length; i++) {
-                const offer = offers[i];
-                const card = document.createElement("div");
-                card.className = "col-sm-5 m-3";
-                card.innerHTML = `
-                    <div id="offer" class="card ">
-                        <div id="offer-body" class="card-body">
-                            <h5 id="offer-creator">${offer.creator}</h5>
-                            <div id="offerta" class="row align-items-center justify-content-center">
-                            <div id="requested-card" class="col-sm-4 ">
-                            <b>Carta richiesta:</b>
-                            ${offer.carteRichieste}  
-                            </div> 
-                            <div id="arrow" class="col-sm-4 text-center">--></div>
-                            <div id="offered-card" class="col-sm-4">
-                            <b>Carta offerta:</b>
-                            ${offer.carteOfferte}</div>
-                            <button id="accept-offer" class="btn btn-primary" style="width:10rem;">Accetta <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" ></span></button>
-                            </div>
-                        </div>
-                    </div>`;
-                offersContainer.appendChild(card);
-            }
+        function addSelection(button) {
+            const selector = button.closest('.selector');
+
+            const newSelector = selector.cloneNode(true);
+            newSelector.querySelector(".form-select").value = "Choose card";
+
+            const existingOptions = selector.querySelectorAll(".form-select option");
+            const newSelect = newSelector.querySelector(".form-select");
+
+            existingOptions.forEach(option => {
+                newSelect.appendChild(option.cloneNode(true));
+            });
+
+            selector.querySelector(".btn").classList.remove("btn-outline-secondary");
+            selector.querySelector(".btn").classList.add("btn-danger");
+            selector.querySelector(".btn").setAttribute("onclick", "removeSelection(this)");
+            selector.querySelector(".btn").innerHTML = "-";
+            selector.after(newSelector);
         }
+
+        function removeSelection(button) {
+            const selector = button.closest('.selector');
+            selector.parentNode.removeChild(selector);
+        }
+
+        //funzione per pubblicare l'offerta
+        async function pubblicaOfferta() {
+            const carteOfferte = [];
+            const carteRichieste = [];
+
+            var offerte = document.getElementsByClassName("offerte");
+            var richieste = document.getElementsByClassName("richieste");
+
+
+            if ((offerte.length == 1 && offerte[0].value == "null") || (richieste.length == 1 && richieste[0].value == "null")) {
+                showAlert("error", "Devi selezionare almeno una carta da offrire e una da richiedere");
+                return;
+            }
+
+            for (i = 0; i < offerte.length; i++) {
+                if (offerte[i].selected && offerte[i].value != "null") {
+                    carteOfferte.push({ id: offerte[i].value, name: offerte[i].innerHTML });
+                }
+            }
+
+
+            for (i = 0; i < richieste.length; i++) {
+                if (richieste[i].selected && richieste[i].value != "null") {
+                    carteRichieste.push({ id: richieste[i].value, name: richieste[i].innerHTML });
+                }
+            }
+
+            const found = carteOfferte.some(card => { return carteRichieste.includes(card) });
+
+            if (found) {
+                showAlert("error", "Non puoi offrire la stessa carta che richiedi");
+                return;
+            }
+
+
+            await createScambio(carteOfferte, carteRichieste)
+        }
+
+
 
         function showMyOffers(offers) {
             if (offers.length == 0 || offers == null) {
                 document.getElementById("my-offers-container").innerHTML = `<h2>Non hai offerte attive</h2>`;
             }
-            const offersContainer = document.getElementById("my-offers-container");
-            offersContainer.innerHTML = "";
+            const myOfferTemp = document.getElementById("myOffer");
+
             for (let i = 0; i < offers.length; i++) {
                 const offer = offers[i];
-                console.log(offer._id)
-                const card = document.createElement("div");
-                card.className = "col-sm-5 m-3";
-                card.innerHTML = `
-                    <div id="offer" class="card">
-                        <div id="offer-body" class="card-body">
-                            <b>Carta richiesta:</b>
-                            <div id="requested-card">${offer.carteRichieste}</div> 
-                            <b>Carta offerta:</b>
-                            <div id="offered-card">${offer.carteOfferte}</div>
-                            <button id="delete-myOffer" class="btn btn-warning md-3" onclick="deleteScambio('${offer._id}',this)">Elimina <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span></button>
-                        </div>
-                    </div>`;
-                offersContainer.appendChild(card);
-                console.log(card)
+                const clone = myOfferTemp.cloneNode(true);
+
+                clone.querySelector("#offered-card").textContent = offer.carteOfferte.map((carta) => (carta.name)).join(", ");
+                clone.querySelector("#requested-card").textContent = offer.carteRichieste.map((carta) => (carta.name)).join(", ");
+                clone.querySelector("#delete-offer").setAttribute("onclick", `deleteScambio('${offer._id}',this)`);
+
+                clone.classList.remove("d-none");
+                myOfferTemp.after(clone);
             }
         }
+
         async function deleteScambio(scambioId, button) {
             showSpinner(button);
             var userId = JSON.parse(localStorage.getItem('userId'));
@@ -224,15 +347,13 @@
                 })
                 .then(({ status, json }) => {
                     if (status === 200) {
-                        document.getElementById('succesfull-alert').classList.remove('d-none');
-                        document.getElementById('success-message').innerHTML = "Offerta eliminata con successo";
-
+                        showAlert("success", "Scambio eliminato con successo")
                         setTimeout(() => {
                             location.reload();
                         }, 3000);
                         console.log(json);
                     } else {
-                        showAlert("error", "Errore:" + json.message);
+                        showAlert("error", "Errore:" + json.error);
                         hideSpinner(button);
                     }
                 })
@@ -241,24 +362,108 @@
             }
         }
 
-        async function createScambio(){
-            const userId = localStorage.getItem("userId")
-            const carteOfferte = document.getElementById("carteOfferte").value
+        function scambioModalOpen() {
+            const modal = new bootstrap.Modal(document.getElementById('cardsModal'));
+            modal.show();
+        }
+
+        async function createScambio(carteOfferte, carteRichieste) {
+
+            const userId = JSON.parse(localStorage.getItem("userId"))
+
+            for (let i = 0; i < carteRichieste.length; i++) {
+                var carta = carteRichieste[i];
+                console.log(carta)
+                if (await userHasCard(carta.id)) {
+                    showAlert("error", "possiedi già la carta " + carta.name);
+                    return;
+                }
+            }
+
             const options = {
-                method: "PUT",
+                method: "POST",
                 headers: {
                     accept: 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body:{
-                    carteOfferte:[],
-                    carteRichieste:[]
-                }
+                body: JSON.stringify({
+                    carteRichieste: carteRichieste,
+                    carteOfferte: carteOfferte
+                })
             }
+
+            await fetch("http://localhost:3001/scambi/" + userId + "?apikey=123456", options)
+                .then(async res => {
+                    json = await res.json();
+                    return { status: res.status, json: json };
+                })
+                .then(({ status, json }) => {
+                    if (status == 200) {
+                        showAlert("success", "Scambio creato con successo")
+                        setTimeout(() => {
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        showAlert("error", "Errore:" + json.error);
+                    }
+                })
+                .catch(err => {
+                    console.log(err)
+                })
 
 
         }
 
+        async function getMyCards(currentPage) {
+            var userId = JSON.parse(localStorage.getItem('userId'));
+
+            const options = {
+                method: "GET",
+                headers: {
+                    accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }
+            var myCards = [];
+            const response = await fetch("http://localhost:3001/carte/" + userId + "/" + currentPage + "?apikey=123456", options)
+                .then(async res => {
+                    json = await res.json();
+                    return { status: res.status, json: json };
+                })
+                .then(({ status, json }) => {
+                    if (status == 200) {
+                        myCards = json.album;
+                    }
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+            return myCards;
+        }
+
+        function addCardOptions(cards, type) {
+            var option = document.getElementsByClassName(type)[0];
+            var cardsAdded = 0;
+            for (let i = 0; i < cards.length; i++) {
+                var card = cards[i].card || cards[i];
+                if (cards[i].quantity != undefined && cards[i].quantity <= 1) {
+                    continue;
+                }
+                var clone = option.cloneNode(true);
+                clone.value = card.id;
+                clone.innerHTML = card.name;
+                clone.classList.remove("d-none");
+                option.after(clone);
+                cardsAdded++;
+            }
+            if (cardsAdded == 0) {
+                document.getElementsByClassName(type + "Default")[0].classList.add("disabled");
+                document.getElementsByClassName(type + "Default")[0].innerHTML = "Nessuna carta disponibile";
+                document.getElementsByClassName(`${type}-btn`)[0].classList.add("d-none");
+                document.getElementsByClassName("pubblica")[0].classList.add("disabled");
+                document.getElementsByClassName("pubblica")[0].innerHTML = "Non hai doppioni da scambiare";
+            }
+        }
 
     </script>
 </body>

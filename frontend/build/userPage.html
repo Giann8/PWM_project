@@ -27,8 +27,13 @@
                         href="http://localhost:3000/cardMarket.html">cardMarket</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link active " aria-current="page"
+                        href="http://localhost:3000/cards.html">Cards</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
                 </li>
+
             </ul>
             <div id="user_nav" class="nav-item dropdown d-none">
                 <button id="username" type="button" class="btn btn-secondary dropdown-toggle"
@@ -77,7 +82,7 @@
             <div class="card-body d-flex flex-column align-items-center">
                 <h5 class="card-title">Benvenuto</h5><span id="utente"></span></p>
                 <div class="user-info">
-                    <p>Possiedi <b id="coins"></b> monete</p>
+                    <p>Possiedi <b id="user-coins"></b> monete</p>
                     <p id="nessun-pacchetto">Non hai pacchetti da aprire <a
                             href="http://localhost:3000/shop.html">Comprali
                             qua!</a></p>
@@ -159,6 +164,9 @@
                 document.getElementById('hai-pacchetti').classList.remove('d-none');
                 document.getElementById('nessun-pacchetto').classList.add('d-none');
             }
+
+            document.getElementById('user-coins').innerHTML = localStorage.getItem("coins");
+
         };
 
 

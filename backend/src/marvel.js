@@ -56,7 +56,7 @@
   var privateApiKey = "f386e64b715f6dd1c4c1fd0263181f614331a68f"
   var parameters = `ts=${timestamp}&apikey=${publicApiKey}&hash=${MD5(timestamp + privateApiKey + publicApiKey)}&`
 
-  return fetch(`http://gateway.marvel.com/v1/${url}?${parameters}${query}`)
+  return fetch(`https://hp-api.onrender.com/api/characters`)
     .then(response => response.json())
     .catch(error => console.log('error', error));
 }

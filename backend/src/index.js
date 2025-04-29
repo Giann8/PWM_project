@@ -207,9 +207,9 @@ app.put('/apriTuttiPacchetti/:userId', async (req, res) => {
 })
 
 // ####################CARTE E SCAMBI########################
-app.get('/carte/:userId', async (req, res) => {
+app.get('/carte/:userId/:pageNumber', async (req, res) => {
     try {
-        const result = await lib.getUserCards(req.params.userId);
+        const result = await lib.getUserCards(req.params.userId, req.params.pageNumber);
         res.status(200).json(result);
     } catch (err) {
         lib.handleError(err, res);
@@ -227,7 +227,16 @@ app.get('/cartaSingola/:cardId', async (req, res) => {
 
 app.put('/carte/:userId', async (req, res) => {
     try {
-        const result = await lib.addCard(req.params.userId, req.body.cardName);
+        const result = await lib.addCard(req.params.userId, req.body.cardId);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
+app.get('/carta/:userId/:cardId', async (req, res) => {
+    try {
+        const result = await lib.getUserCardById(req.params.userId, req.params.cardId);
         res.status(200).json(result);
     } catch (err) {
         lib.handleError(err, res);
@@ -306,24 +315,34 @@ app.delete('/scambi/:userId/:scambioId', async (req, res) => {
     }
 })
 
+app.get('/scambiWithSameCards/:userId', async (req, res) => {
+    try {
+        const result = await lib.getScambiWithSameCards(req.params.userId, req.body.cards);
+        res.status(200).json(result);
+    } catch (err) {
+        lib.handleError(err, res);
+    }
+})
+
 // #MARVEL API
 app.get('/heroes', async (req, res) => {
     try {
         //  var result = await marvel.getFromMarvel('public/characters');
-        const result = await lib.getHeroes();
+        //const result = await lib.getHeroes();
+        const result = await lib.getAllMagicians();
         res.status(200).json(result);
     } catch (err) {
-        res.status(500).json(err);
+        lib.handleError(err, res);
     }
 });
 
 
 app.get('/randomHeroes/:numberOfHeroes', async (req, res) => {
     try {
-        const result = await lib.getRandomHeroDB(req.params.numberOfHeroes);
+        const result = await lib.getRandomCards(req.params.numberOfHeroes);
         res.status(200).json(result);
     } catch (err) {
-        res.status(500).json(err);
+        lib.handleError(err, res);
     }
 })
 
