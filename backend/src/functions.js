@@ -1,7 +1,9 @@
-const { MongoClient, ObjectId } = require('mongodb')
+const { MongoClient, ObjectId, Db } = require('mongodb')
 const crypto = require('crypto');
 const { getFromMarvel, getRandomInt } = require('./marvel');
-const { json } = require('stream/consumers');
+const { get } = require('http');
+const { createBrotliDecompress } = require('zlib');
+
 
 
 
@@ -88,6 +90,19 @@ async function checkBooster(boosterName) {
     return false;
 }
 
+async function hasBooster(userId, boosterId) {
+    const connection = await client.connect();
+    const db = connection.db(DB_NAME);
+
+    const user = await db.collection('Users').findOne({ _id: ObjectId.createFromHexString(userId), [`Boosters.${boosterId}`]: { $gt: 0 } })
+    await connection.close();
+
+    if (user != null) {
+        return true
+    }
+    return false;
+}
+
 async function getUserCredits(id) {
     var user;
     try {
@@ -144,7 +159,7 @@ async function registerUser(res, user) {
             album: {
             },
             favorite_hero: user.favorite_hero || "",
-            Boosters: []
+            Boosters: {}
         });
 
         console.log("User added")
@@ -382,17 +397,56 @@ async function updateFavSuperhero(id, hero) {
     }
 }
 
-async function updatePersonalBoosters(user_Id, booster_Id) {
+async function addPersonalBoosters(user_Id, booster) {
     const user = await getUserById(user_Id);
-    
+
     const connection = await client.connect();
     try {
         const db = connection.db(DB_NAME);
-        await db.collection('Users').findOneAndUpdate({ _id: user._id }, { $push: { Boosters: { booster_Id } } });
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(user_Id) }, {
+            $inc: {
+                [`Boosters.${booster._id}`]: 1
+            }
+        });
     } finally {
         await connection.close();
     }
     return user;
+}
+
+async function removePersonalBooster(user_Id, boosterId) {
+    if (boosterId == null) {
+        throw new Error("Format: Inserisci il pacchetto da rimuovere");
+
+    }
+
+    const user = await getUserById(user_Id);
+
+    const numeroPacchetti = user.boosters[boosterId];
+
+    const connection = await client.connect();
+    try {
+        var check = null;
+        const db = connection.db(DB_NAME);
+        if (numeroPacchetti && numeroPacchetti > 1) {
+            check = await db.collection("Users").updateOne({ _id: ObjectId.createFromHexString(user_Id) }, {
+                $inc: {
+                    [`Boosters.${boosterId}`]: -1
+                }
+            });
+        } else if (numeroPacchetti && numeroPacchetti === 1) {
+            check = await db.collection("Users").updateOne({ _id: ObjectId.createFromHexString(user_Id) }, {
+                $unset: {
+                    [`Boosters.${boosterId}`]: ""
+                }
+            });
+        }
+        if (check == null) {
+            throw new Error("Format: Pacchetto non trovato")
+        }
+    } finally {
+        await connection.close();
+    }
 }
 
 ///////////////////////ACQUISTI///////////////////////
@@ -415,8 +469,6 @@ async function updateCoins(id, coins) {
 
         const db = connection.db(DB_NAME);
 
-        console.log("Current coins: " + currentCoins)
-        console.log("Coins to add: " + coins)
         const total = Number(currentCoins) + Number(coins);
 
         if (total >= 0) {
@@ -452,7 +504,7 @@ async function creaPacchetto(body) {
 
 
     if (await checkBooster(body.boosterName)) {
-        console.log(body.boosterName)
+
         throw new Error("Format: Pacchetto già esistente")
     }
 
@@ -510,6 +562,26 @@ async function getPacchetti() {
     }
 }
 
+async function getPacchettiByUserId(userId) {
+
+    const user = await getUserById(userId);
+
+    const boosters = [];
+
+    var total = 0;
+    for (const booster in user.boosters) {
+        var pacchetto = await getPacchettoById(booster);
+        boosters.push({ booster: pacchetto, quantity: user.boosters[booster] });
+        total += user.boosters[booster];
+    }
+
+    if (boosters.length <= 0) {
+        throw new Error("Format: Nessun pacchetto trovato")
+    }
+
+    return { boosters: boosters, total: total };
+}
+
 /**
  * Funzione per ottenere un pacchetto tramite id.
  * @param {String} boosterId 
@@ -541,12 +613,11 @@ async function compraPacchetto(id, boosterName) {
 
 
     const booster = await getBoosterByName(boosterName);
-    const user = await getUserById(id);
-    console.log(user)
-    console.log(JSON.stringify(booster._id))
+    var user = await getUserById(id);
+
     if (user.coins >= booster.cost) {
+        user = await addPersonalBoosters(id, booster);
         var result = await updateCoins(id, -booster.cost);
-        await updatePersonalBoosters(id, JSON.stringify(booster._id));
         return { message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result };
     } else {
         throw new Error("Format: Non hai abbastanza coins");
@@ -554,10 +625,411 @@ async function compraPacchetto(id, boosterName) {
 
 }
 
+async function apriPacchetto(userId, boosterName) {
+    if (!boosterName) {
+        throw new Error("Format: Inserisci il pacchetto da aprire");
+    }
+
+    const booster = await getBoosterByName(boosterName);
+
+    if (!await hasBooster(userId, booster._id)) {
+        throw new Error("Format: Non possiedi questo pacchetto");
+    }
+
+    const heroes = await getRandomCards(booster.cardNumber)
+
+
+
+    for (let i = 0; i < heroes.length; i++) {
+        await addCard(userId, heroes[i].id);
+    }
+
+
+    const user = await removePersonalBooster(userId, booster._id);
+
+    return { message: "Pacchetto aperto", heroes: heroes, user: user };
+
+}
+/**
+ * Funzione per aprire tutti i pacchetti
+ * @param {*} userId 
+ */
+async function apriPacchetti(userId) {
+    var totalHeroes = [];
+
+    const possessedBoosters = await getPacchettiByUserId(userId);
+    for (let j = 0; j < possessedBoosters.boosters.length; j++) {
+
+        const booster = possessedBoosters.boosters[j];
+
+        for (let i = 0; i < booster.quantity; i++) {
+
+            const heroesFound = await apriPacchetto(userId, booster.booster.boosterName);
+
+            totalHeroes.push.apply(totalHeroes, heroesFound.heroes);
+        }
+    };
+
+
+    return { message: "Pacchetti aperti", heroes: totalHeroes, quantity: totalHeroes.length };
+}
+
+/**
+ * Funzione per ottenere le carte dell'utente 
+ * @param {String} userId 
+ * @returns 
+ */
+async function getUserCards(userId, pageNumber) {
+    const user = await getUserById(userId);
+
+    var heroNumber = 20;
+    if (pageNumber == null) {
+        pageNumber = 1;
+    }
+    if (pageNumber == "all") {
+        pageNumber = 1;
+        heroNumber = Object.keys(user.album).length
+    }
+
+    var album = [];
+    if (Object.keys(user.album).length > 0) {
+        for (let i = (pageNumber - 1) * heroNumber; i < pageNumber * heroNumber; i++) {
+            const card = Object.keys(user.album)[i];
+            const cardData = await getCardById(card);
+            if (cardData) {
+                album.push({ card: cardData, quantity: user.album[card] });
+            }
+        }
+        return { album: album, totalCards: Object.keys(user.album).length };
+    }
+    throw new Error("Format: L'utente non possiede nessuna carta");
+}
+
+async function getUserCardById(userId, cardId) {
+    const user = await getUserById(userId);
+    if (user.album[cardId]) {
+        const card = await getCardById(cardId);
+        return { card: card, quantity: user.album[cardId] };
+    }
+    throw new Error("Format: Carta non trovata");
+}
+// /**
+//  * 
+//  * @param {String} cardId 
+//  */
+// async function getCardById(cardId) {
+//     const connection = await client.connect();
+
+//     try {
+//         const db = connection.db(DB_NAME);
+//         var card = await db.collection('Marvel').findOne({ id: Number(cardId) });
+//         if (card == null) {
+//             card = await fetch("https://hp-api.onrender.com/api/character/" + cardId)
+//                 .then(async res => json = await res.json())
+//                 .then(json => { })
+//                 .catch(err => console.log(err));
+//             if (card == null) {
+//                 throw new Error("Format: Carta non trovata");
+//             }
+//         }
+
+//         return { card: card };
+//     } finally {
+//         await connection.close();
+//     }
+// }
+
+async function getCardById(cardId) {
+    var card = null
+    await fetch(`https://hp-api.onrender.com/api/character/` + cardId)
+        .then(async res => {
+            if (res.status == 200) {
+                card = await res.json();
+            } else {
+                throw new Error("Format: Carta non trovata");
+            }
+        })
+        .catch(err => { throw new Error(err) })
+    if (card == null) {
+        throw new Error("Format: Carta non trovata");
+    }
+    return card[0];
+}
+/**
+ * 
+ * @param {*} userId 
+ * @param {*} card
+ */
+async function addCard(userId, cardId) {
+    if (!cardId) {
+        throw new Error("Format: Nessuna carta da aggiungere");
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(userId) }, {
+            $inc: {
+                [`album.${cardId}`]: 1
+            }
+        })
+        return { message: "Carte aggiunte" }
+    } catch (err) {
+        console.log(err);
+    } finally {
+        await connection.close();
+    }
+}
+
+async function removeCard(userId, cardId) {
+    const user = await getUserById(userId);
+    const cardQuantity = user.album[cardId];
+    const connection = await client.connect();
+    try {
+        var updated;
+        if (cardQuantity && cardQuantity > 1) {
+            updated = await connection.db(DB_NAME).collection("Users").updateOne({ _id: ObjectId.createFromHexString(userId) }, {
+                $inc: {
+                    [`album.${cardId}`]: -1
+                }
+            });
+        } else if (cardQuantity && cardQuantity === 1) {
+            throw new Error("Format: non puoi scambiare o vendere l'ultima copia di una carta")
+        }
+        if (updated == null) {
+            throw new Error("Carta non trovata")
+        }
+        return { message: "Carta eliminata", album: user.album, updated: updated }
+    } finally {
+        await connection.close();
+    }
+}
+
+
+async function sellCard(userId, cardId) {
+    await removeCard(userId, cardId);
+    const coins = await updateCoins(userId, 10);
+    return { message: "Carta venduta, ti sono state accreditate 10 monete", currentCoins: coins }
+}
+
+//################### EXCHANGES #######################
+async function createScambio(userId, body) {
+    if (userId == null || body.carteOfferte == null || body.carteRichieste == null) {
+        throw new Error("Format: Missing fields")
+    }
+    if (body.carteOfferte.length <= 0) {
+        throw new Error("Format: Inserisci la carta che vuoi offrire")
+    }
+
+    if (body.carteRichieste.length <= 0) {
+        throw new Error("Format: Inserisci la carta che desideri")
+    }
+    console.log(body)
+    const user = await getUserById(userId);
+
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchange = await db.collection('Exchanges').insertOne({
+            userId: userId,
+            creator: user.username,
+            carteRichieste: body.carteRichieste,
+            carteOfferte: body.carteOfferte
+        })
+        return exchange;
+    } finally {
+        await connection.close();
+    }
+}
+
+async function deleteScambio(exchangeId, userId) {
+    if (userId == null || exchangeId == null) {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchange = await db.collection('Exchanges').findOneAndDelete({ _id: ObjectId.createFromHexString(exchangeId) });
+
+        if (exchange == null) {
+            throw new Error("Scambio non trovato")
+        } else if (exchange.userId != userId) {
+            throw new Error("Format: Non puoi eliminare uno scambio che non hai creato")
+        }
+
+        return exchange;
+    } finally {
+        await connection.close();
+    }
+
+}
+
+async function getScambioById(exchangeId) {
+    if (exchangeId == null) {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchange = await db.collection('Exchanges').findOne({ _id: ObjectId.createFromHexString(exchangeId) });
+
+        if (exchange == null) {
+            throw new Error("Scambio non trovato")
+        } else {
+            return exchange;
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
+async function getScambi() {
+
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchanges = await db.collection('Exchanges').find().toArray();
+        if (exchanges.length > 0) {
+            return exchanges;
+        } else {
+            throw new Error("Format: Nessun scambio trovato");
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
+async function getScambiByUserId(userId) {
+    if (userId == ":userId") {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const exchanges = await db.collection('Exchanges').find({ userId: userId }).toArray();
+
+        if (exchanges.length > 0) {
+            return exchanges;
+        } else {
+            throw new Error("Format: L'utente non ha scambi attivi");
+        }
+    } finally {
+        await connection.close();
+    }
+}
+
+async function accettaScambio(userId, exchangeId) {
+    if (userId == null || exchangeId == null) {
+        throw new Error("Format: Missing fields")
+    }
+    console.log(exchangeId, userId);
+    const scambio = await getScambioById(exchangeId);
+    const userCreatorId = scambio.userId;
+
+    var userRemoved = [];
+    var creatorRemoved = [];
+    var userAdded = [];
+    var creatorAdded = [];
+
+    var nonPiuDisponibiliCreator = [];
+    var nonPiuDisponibiliUser = [];
+
+    try {
+        for (let i = 0; i < scambio.carteOfferte.length; i++) {
+            const carta = scambio.carteOfferte[i];
+            await removeCard(userCreatorId, carta.id)
+            if ((await getUserCardById(userCreatorId, carta.id)).quantity < 2) {
+                nonPiuDisponibiliCreator.push({id:carta.id, name:carta.name});
+            }
+            creatorRemoved.push(carta.id);
+            await addCard(userId, carta.id)
+            userAdded.push(carta.id)
+
+        }
+
+        for (let i = 0; i < scambio.carteRichieste.length; i++) {
+            const carta = scambio.carteRichieste[i];
+            await removeCard(userId, carta.id)
+            if ((await getUserCardById(userId, carta.id)).quantity < 2) {
+                nonPiuDisponibiliUser.push({id:carta.id, name:carta.name});
+            }
+            userRemoved.push(carta.id);
+            await addCard(userCreatorId, carta.id);
+            creatorAdded.push(carta.id);
+        }
+
+    } catch (err) {
+        console.log(err);
+        if (userRemoved.length > 0) {
+            for (cartaId in userRemoved) {
+                console.log(cartaId);
+                await addCard(userId, cartaId);
+            }
+        }
+        if (creatorRemoved.length > 0) {
+            for (cartaId in creatorRemoved) {
+                await addCard(userCreatorId, cartaId);
+            }
+        }
+        if (creatorAdded.length > 0) {
+            for (cartaId in creatorAdded) {
+                await removeCard(userCreatorId, cartaId);
+            }
+        }
+        if (userAdded.length > 0) {
+            for (cartaId in userAdded) {
+                await removeCard(userId, cartaId);
+            }
+        }
+        throw new Error("Format: an error occurred, exchange stopped and cards returned");
+    }
+    await deleteScambio(exchangeId, userCreatorId);
+
+    console.log(nonPiuDisponibiliCreator);
+    console.log(nonPiuDisponibiliUser);
+
+    var scambiAttiviUser = await getScambiWithSameCards(userId, nonPiuDisponibiliUser);
+    var scambiAttiviCreator = await getScambiWithSameCards(userCreatorId, nonPiuDisponibiliCreator);
+
+    console.log(scambiAttiviUser);
+    console.log(scambiAttiviCreator);
+
+    if (scambiAttiviUser.length > 0) {
+        for (let i = 0; i < scambiAttiviUser.length; i++) {
+            const scambio = scambiAttiviUser[i];
+            const response = await deleteScambio(String(scambio._id), userId);
+        }
+    }
+    if (scambiAttiviCreator.length > 0) {
+        for (let i = 0; i < scambiAttiviCreator.length; i++) {
+            const scambio = scambiAttiviCreator[i];
+            console.log(String(scambio._id));
+            const response = await deleteScambio(String(scambio._id), userCreatorId);
+            console.log(response)
+        }
+    }
+
+    return { message: "Scambio completato con successo, alcuni scambi potrebbero essere stati eliminati" }
+}
+
+async function getScambiWithSameCards(userId, cards) {
+    if (userId == null || cards == null) {
+        throw new Error("Format: Missing fields")
+    }
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const scambi = await db.collection('Exchanges').find({ userId: userId, carteOfferte: { $in: cards } }).toArray();
+        return scambi;
+    } finally {
+        await connection.close();
+    }
+}
+
 //MARVEL RANDOM PICK
 
 async function getRandomHero(n = 1) {
-    heroes_data = getFromMarvel('public/characters', "limit=1");
+    heroes_data = await getFromMarvel('public/characters', `limit=${n}`);
+
     result = [];
     for (i = 0; i < n;) {
         offset = getRandomInt(0, heroes_data.data.total);
@@ -570,7 +1042,79 @@ async function getRandomHero(n = 1) {
     return result;
 }
 
+//Funzioni in caso di malfunzionamento api
+async function getHeroes() {
+    const connection = await client.connect();
+    try {
+        const db = connection.db(DB_NAME);
+        const heroes = await db.collection('Marvel').find().toArray();
+        if (heroes.length > 0) {
+            return heroes;
+        } else {
+            throw new Error("Format: Nessun eroe trovato");
+        }
+    } finally {
+        await connection.close();
+    }
+}
 
+
+async function getRandomCards(n = 1) {
+    var result = [];
+
+    //const heroes = await getHeroes();
+    const heroes = await getAllMagicians();
+
+    for (i = 0; i < n;) {
+        offset = getRandomInt(0, heroes.length);
+
+        hero = heroes[offset];
+        if (hero != null) {
+            result.push(hero);
+            i++;
+        }
+    }
+
+    if (result.length <= 0) {
+        throw new Error("fetch error")
+    }
+
+    return result;
+}
+
+async function getAllMagicians() {
+    var magicians = [];
+    var response = await fetch(`https://hp-api.onrender.com/api/characters`)
+        .then(async response => {
+            const json = await response.json()
+
+            return { status: response.status, json: json }
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                for (let i = 0; i < json.length; i++) {
+                    const magician = json[i];
+                    magicians.push({
+                        id: magician.id,
+                        name: magician.name,
+                        image: magician.image,
+                        wand: magician.wand,
+                        house: magician.house
+                    })
+                }
+            }
+            return true;
+        })
+        .catch(error => {
+            console.log("error occurred " + error);
+        });
+
+    if (magicians.length <= 0) {
+        throw new Error("fetch error")
+    }
+
+    return magicians
+}
 //Gestione errori
 /**
  * Funzione per gestire gli errori
@@ -578,8 +1122,8 @@ async function getRandomHero(n = 1) {
  * @param {Response} res 
  */
 function handleError(err, res) {
-    var message = err.message.split("Format: ");
     if (err.message.includes("Format: ")) {
+        var message = err.message.split("Format: ");
         res.status(400).json({ error: message[1] })
         return;
     }
@@ -596,7 +1140,8 @@ module.exports = {
     updatePassword,
     updateEmail,
     updateFavSuperhero,
-    updatePersonalBoosters,
+    addPersonalBoosters,
+    removePersonalBooster,
     searchEmail,
     getUserByUsername,
     updateCoins,
@@ -604,8 +1149,27 @@ module.exports = {
     creaPacchetto,
     deletePacchetto,
     getPacchetti,
+    getPacchettiByUserId,
     getPacchettoById,
     compraPacchetto,
-    getRandomHero
+    apriPacchetto,
+    apriPacchetti,
+    getUserCards,
+    getCardById,
+    addCard,
+    removeCard,
+    sellCard,
+    getUserCardById,
+    createScambio,
+    getScambi,
+    getScambioById,
+    getScambiByUserId,
+    getScambiWithSameCards,
+    accettaScambio,
+    deleteScambio,
+    getRandomHero,
+    getRandomCards,
+    getHeroes,
+    getAllMagicians
 }
 

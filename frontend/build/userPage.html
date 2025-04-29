@@ -10,42 +10,59 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid">
+    <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid sticky-top">
 
         <div class="navbar-brand mx-2 mb-0 h1">Progetto Web</div>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
+            aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse mx-3 justify-content-between" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse mx-3 justify-content-between" id="navbarScroll">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
                     <a class="nav-link active " aria-current="page" href="http://localhost:3000/home.html">Home</a>
                 </li>
-                <li class="nav-item" id="market">
-                    <a class="nav-link active" aria-current="page" href="http://localhost:3000/market.html">Market</a>
+                <li class="nav-item" id="cardMarket">
+                    <a class="nav-link active" aria-current="page"
+                        href="http://localhost:3000/cardMarket.html">cardMarket</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active " aria-current="page"
+                        href="http://localhost:3000/cards.html">Cards</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
                 </li>
+
             </ul>
             <div id="user_nav" class="nav-item dropdown d-none">
-                <button id="username" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">
+                <button id="username" type="button" class="btn btn-secondary dropdown-toggle"
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Offset
                 </button>
                 <div class="dropdown-menu dropdown-menu-end">
-                    <li><span class="dropdown-item-text"><b>Monete: </b><p id="coins"></p><b>Pacchetti: </b><p id="boostersNumber"></p></p></span></li>
-                    <a class="dropdown-item" href="http://localhost:3000/userPage.html">MyPage</a>
+                    <li class="md-0"><span class="dropdown-item-text"><b>Monete: </b>
+                            <p id="coins"></p>
+                            <b>Pacchetti: </b>
+                            <p id="boostersNumber"></p>
+                            </p>
+                        </span>
+                    </li>
+
+                    <div class="dropdown-divider"></div>
+
+                    <a class="dropdown-item" href="http://localhost:3000/myPacks.html">My Packs</a>
+                    <a class="dropdown-item" href="http://localhost:3000/userPage.html">My Page</a>
+                    <a class="dropdown-item" href="http://localhost:3000/album.html">My Album</a>
                     <div class="dropdown-divider"></div>
                     <button class="dropdown-item" onclick="logout()">logout</button>
                 </div>
             </div>
 
             <div id="login_nav" class="">
-                <button class="btn btn-primary" id="login-button"
+                <button class="btn btn-outline-warning" id="login-button"
                     onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
-                <button class="btn btn-primary" id="register-button"
+                <button class="btn btn-warning" id="register-button"
                     onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
             </div>
         </div>
@@ -65,7 +82,7 @@
             <div class="card-body d-flex flex-column align-items-center">
                 <h5 class="card-title">Benvenuto</h5><span id="utente"></span></p>
                 <div class="user-info">
-                    <p>Possiedi <b id="coins"></b> monete</p>
+                    <p>Possiedi <b id="user-coins"></b> monete</p>
                     <p id="nessun-pacchetto">Non hai pacchetti da aprire <a
                             href="http://localhost:3000/shop.html">Comprali
                             qua!</a></p>
@@ -147,6 +164,9 @@
                 document.getElementById('hai-pacchetti').classList.remove('d-none');
                 document.getElementById('nessun-pacchetto').classList.add('d-none');
             }
+
+            document.getElementById('user-coins').innerHTML = localStorage.getItem("coins");
+
         };
 
 
