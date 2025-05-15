@@ -1,4 +1,4 @@
-const apikey = 123456;
+const apikey = "123456";
 const url = "http://localhost:3001"
 
 function logout() {
@@ -40,7 +40,7 @@ async function login() {
         })
     }
 
-    await fetch(url + '/login?apikey=123456', options)
+    await fetch(url + '/login?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -182,7 +182,7 @@ async function register() {
             username: document.getElementById('username').value
         })
     }
-    await fetch(url + '/register?apikey=123456', options)
+    await fetch(url + '/register?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -241,7 +241,7 @@ async function getUserInfo() {
         }
     }
 
-    await fetch(url + '/users/' + userId + '?apikey=123456', options)
+    await fetch(url + '/users/' + userId + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json }
@@ -492,7 +492,7 @@ function showBoosters(boosters) {
 
         image.src = booster.img || "assets/Default_booster.jpg";
         title.innerHTML = `<b>${booster.boosterName}</b>`;
-        description.innerHTML = `<p><b>Carte: </b>${booster.cardNumber} Prezzo: ${booster.cost}</p>`;
+        description.innerHTML = `<p><b>Carte: </b>${booster.cardNumber} Prezzo: ${booster.price}</p>`;
 
 
         clone.classList.remove('d-none')
@@ -638,7 +638,7 @@ async function getMyScambi() {
     return mieiScambi;
 }
 
-async function getHeroes() {
+async function getMaghi() {
     const options = {
         method: 'GET',
         headers: {
@@ -646,25 +646,25 @@ async function getHeroes() {
             'Content-Type': 'application/json'
         }
     };
-    heroes = [];
-    await fetch(url + '/heroes?apikey=' + apikey, options)
+    maghi = [];
+    await fetch(url + '/maghi?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json };
         })
         .then(({ status, json }) => {
             if (status == 200) {
-                heroes = json;
+                maghi = json;
             }
         })
         .catch(err => {
             console.log(err);
         })
-    return heroes;
+    return maghi;
 }
 
 
-async function getRandomHeroes(numberOfHeroes) {
+async function getRandomMaghi(numberOfmaghi) {
     const options = {
         method: 'GET',
         headers: {
@@ -672,21 +672,21 @@ async function getRandomHeroes(numberOfHeroes) {
             'Content-Type': 'application/json'
         }
     };
-    heroes = [];
-    await fetch(url + '/randomHeroes/' + numberOfHeroes + '?apikey=' + apikey, options)
+    maghi = [];
+    await fetch(url + '/randomMaghi/' + numberOfmaghi + '?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
             return { status: res.status, json: json };
         })
         .then(({ status, json }) => {
             if (status == 200) {
-                heroes = json;
+                maghi = json;
             }
         })
         .catch(err => {
             console.log(err);
         })
-    return heroes;
+    return maghi;
 }
 
 async function getAllCards() {
@@ -699,7 +699,7 @@ async function getAllCards() {
         }
     };
 
-    const allCards = await fetch('http://localhost:3001/heroes?apikey=' + apikey, options)
+    const allCards = await fetch(url+'/maghi/'+'?apikey=' + apikey, options)
         .then(async res => {
             json = await res.json();
             return ({ status: res.status, json: json })
@@ -777,19 +777,19 @@ async function userHasCard(cardId, userId) {
     return card != null;
 }
 
-function showFoundCards(heroes, modal) {
+function showFoundCards(maghi, modal) {
 
 
-    if (heroes.length <= 0) {
+    if (maghi.length <= 0) {
         return;
     }
 
 
     var card = document.getElementById('card-hero');
 
-    console.log(heroes.length);
-    for (i = 0; i < heroes.length; i++) {
-        showCard(card, heroes[i], true);
+    console.log(maghi.length);
+    for (i = 0; i < maghi.length; i++) {
+        showCard(card, maghi[i], true);
     }
 
     if (modal) {
@@ -965,8 +965,10 @@ function showOffers(offers) {
         clone.querySelector("#requested-card").textContent = offer.carteRichieste.map((carta) => (carta.name)).join(", ");
         var acceptButton = clone.querySelector(".btn");
 
-
-        if (localStorage.getItem("userId").valueOf() == JSON.stringify(offer.userId)) {
+        if(localStorage.getItem("userId") == null) {
+            acceptButton.classList.add("disabled");
+            acceptButton.innerHTML = "<b>Accedi per accettare l'offerta</b>";
+        } else if (localStorage.getItem("userId").valueOf() == JSON.stringify(offer.userId)) {
             acceptButton.classList.add("disabled");
             acceptButton.innerHTML = "<b>Non puoi accettare la tua stessa offerta</b"
         } else {

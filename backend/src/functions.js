@@ -488,14 +488,14 @@ async function updateCoins(id, coins) {
  * @param {JSON} body
  */
 async function creaPacchetto(body) {
-    if (body.cardNumber && body.boosterName && body.cost) {
+    if (body.cardNumber && body.boosterName && body.price) {
         if (body.cardNumber <= 0) {
             throw new Error("Format: Il numero di carte del pacchetto deve essere maggiore di 0")
         }
         if (body.boosterName.length < 4) {
             throw new Error("Format: Il nome del pacchetto è troppo corto")
         }
-        if (body.cost < 0) {
+        if (body.price < 0) {
             throw new Error("Format: Il costo del pacchetto non può essere negativo")
         }
     } else {
@@ -515,7 +515,7 @@ async function creaPacchetto(body) {
         const booster = await db.collection("Boosters").insertOne({
             boosterName: body.boosterName,
             cardNumber: Number(body.cardNumber),
-            cost: Number(body.cost),
+            price: Number(body.price),
             type: body.type || "default",
             img: body.img || "https://www.pngall.com/wp-content/uploads/5/Booster-PNG-Clipart-Background.png"
         })
@@ -615,9 +615,9 @@ async function compraPacchetto(id, boosterName) {
     const booster = await getBoosterByName(boosterName);
     var user = await getUserById(id);
 
-    if (user.coins >= booster.cost) {
+    if (user.coins >= booster.price) {
         user = await addPersonalBoosters(id, booster);
-        var result = await updateCoins(id, -booster.cost);
+        var result = await updateCoins(id, -booster.price);
         return { message: "Pacchetto acquistato", pacchetto: booster.boosterName, coins: result };
     } else {
         throw new Error("Format: Non hai abbastanza coins");
@@ -823,6 +823,12 @@ async function createScambio(userId, body) {
     if (body.carteRichieste.length <= 0) {
         throw new Error("Format: Inserisci la carta che desideri")
     }
+    if(hasDuplicates(body.carteOfferte)) {
+        throw new Error("Format: Non puoi offrire due volte la stessa carta")
+    }
+    if (hasDuplicates(body.carteRichieste)) {
+        throw new Error("Format: Non puoi richiedere due volte la stessa carta")
+    }
     console.log(body)
     const user = await getUserById(userId);
 
@@ -984,14 +990,9 @@ async function accettaScambio(userId, exchangeId) {
     }
     await deleteScambio(exchangeId, userCreatorId);
 
-    console.log(nonPiuDisponibiliCreator);
-    console.log(nonPiuDisponibiliUser);
 
     var scambiAttiviUser = await getScambiWithSameCards(userId, nonPiuDisponibiliUser);
     var scambiAttiviCreator = await getScambiWithSameCards(userCreatorId, nonPiuDisponibiliCreator);
-
-    console.log(scambiAttiviUser);
-    console.log(scambiAttiviCreator);
 
     if (scambiAttiviUser.length > 0) {
         for (let i = 0; i < scambiAttiviUser.length; i++) {
@@ -1128,6 +1129,17 @@ function handleError(err, res) {
         return;
     }
     res.status(500).json({ error: err.message })
+}
+
+function hasDuplicates(array) {
+    const seen = new Set();
+    for (const item of array) {
+        if (seen.has(item.id)) {
+            return true; // Duplicato trovato
+        }
+        seen.add(item.id);
+    }
+    return false; // Nessun duplicato
 }
 
 module.exports = {

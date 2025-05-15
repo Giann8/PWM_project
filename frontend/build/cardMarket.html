@@ -120,7 +120,9 @@
                                 <div id="offered-card"></div>
                             </div>
 
-                            <button id="accept-offer" class="btn btn-primary md-3">Accetta <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span></button>
+                            <button id="accept-offer" class="btn btn-primary md-3">Accetta <span
+                                    class="spinner-border spinner-border-sm d-none" role="status"
+                                    aria-hidden="true"></span></button>
                         </div>
                     </div>
 
@@ -131,7 +133,7 @@
         <div id="my-offers" class="card mb-3 row">
             <div class="card-header d-flex justify-content-between">
                 <h5>Le tue offerte</h5>
-                <button class="btn btn-success" onclick="scambioModalOpen()">Crea scambio</button>
+                <button class="btn btn-success crea-scambio" onclick="scambioModalOpen()">Crea scambio</button>
             </div>
             <div class="card-body">
                 <div id="my-offers-container" class="row justify-content-center">
@@ -219,12 +221,14 @@
             if (checkLogin()) {
                 const myOffers = await getMyScambi();
                 if (myOffers.length == 0 || myOffers == null) {
+
                     document.getElementById("my-offers-container").innerHTML = `<h2 class="text-center">Non hai offerte attive</h2>`;
                 } else {
                     showMyOffers(myOffers);
                 }
 
                 const myCards = await getMyCards("all");
+                console.log(myCards)
                 addCardOptions(myCards, "offerte");
 
                 if (myCards.length > 0) {
@@ -232,8 +236,13 @@
                 }
 
                 const allCards = await getAllCards();
+                var carteMancanti = allCards.filter(function (el) {
+                    return !myCards.some(myCard => myCard.card.id === el.id);
+                })
+                carteMancanti.sort((a, b) => a.name.localeCompare(b.name));
 
-                addCardOptions(allCards, "richieste");
+                addCardOptions(carteMancanti, "richieste");
+
 
                 if (allCards.length > 0) {
                     document.getElementsByClassName("spinner")[0].classList.add("d-none")
@@ -242,6 +251,7 @@
 
             } else {
                 document.getElementById("my-offers-container").innerHTML = `<h2 class="text-center">Devi loggarti per vedere le tue offerte</h2>`;
+                document.getElementsByClassName("crea-scambio")[0].classList.add("d-none");
             }
 
         }

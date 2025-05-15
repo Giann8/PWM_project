@@ -3,10 +3,11 @@ MONGO_URI = process.env.MONGO_URI;
 const express = require('express');
 const app = express();
 const cors = require('cors');
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json');
+
 const lib = require('./functions');
-
-const marvel = require('./marvel');
-
 
 //Middleware
 function auth(req, res, next) {
@@ -21,12 +22,11 @@ function auth(req, res, next) {
 
 app.use(express.json());
 app.use(cors());
-//uso il middleware
-app.use(auth);
 
-app.get('/', (req, res) => {
-    res.send('Hello World');
-})
+//uso il middleware
+
+app.use(/\/((?!api-docs).)*/, auth);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.post('/register', async (req, res) => {
 
@@ -37,6 +37,20 @@ app.post('/register', async (req, res) => {
         lib.handleError(error, res)
     }
 
+    /*
+    #swagger.tags = ['Utenti']
+    #swagger.description = "Registrazione di un nuovo utente"
+    #swagger.requestBody = {
+        required: false,
+        content: {
+        'application/json': {
+            schema: {$ref: "#/components/schemas/userReg"}
+            }
+        }
+    }
+
+    */
+
 })
 
 app.get('/users', async (req, res) => {
@@ -46,6 +60,18 @@ app.get('/users', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*  
+    #swagger.tags = ['Utenti']
+    #swagger.description = "Restituisce tutti gli utenti presenti"
+    #swagger.responses[200] = {
+        description: 'Utenti trovati',
+        content: {
+            'application/json': {
+                schema: {$ref: "#/components/schemas/userSchema"}                    
+            }
+        }
+    }
+    */
 });
 
 app.get('/users/:id', async (req, res) => {
@@ -55,6 +81,10 @@ app.get('/users/:id', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Utenti']
+      #swagger.description = "Restituisce un utente in base all'id"
+     */
 });
 
 app.post('/login', async (req, res) => {
@@ -66,6 +96,17 @@ app.post('/login', async (req, res) => {
         lib.handleError(err, res);
         console.log("user not logged");
     }
+    /*
+    #swagger.tags = ['Utenti']
+    #swagger.requestBody = {
+        required: true,
+        content: {
+            "application/json": {
+                schema: { $ref: "#/components/schemas/userLogin" },
+            }
+        }
+    }
+*/
 });
 
 app.delete('/deleteUser/:id', async (req, res) => {
@@ -76,6 +117,10 @@ app.delete('/deleteUser/:id', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Utenti']
+      #swagger.description = "Elimina un utente in base all'id"
+     */
 });
 
 app.put('/users/:id/updateUsername', async (req, res) => {
@@ -85,6 +130,18 @@ app.put('/users/:id/updateUsername', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /**
+      #swagger.tags = ['Utenti']
+      #swagger.requestBody = {
+        required: true,
+       content: {
+           'application/json': {
+                   schema: {$ref: "#/components/schemas/usernameSchema"}
+              }
+           }
+        }
+      #swagger.description = "Aggiorna il nome utente"
+     */
 });
 
 app.put('/users/:id/updatePassword', async (req, res) => {
@@ -94,6 +151,14 @@ app.put('/users/:id/updatePassword', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /**
+      #swagger.tags = ['Utenti']
+      #swagger.requestBody = {
+        required: true,
+        schema: {$ref: "#/components/schemas/userPasswordSchema"}
+        }
+      #swagger.description = "Aggiorna la password"
+     */
 });
 
 app.put('/users/:id/updateEmail', async (req, res) => {
@@ -103,6 +168,18 @@ app.put('/users/:id/updateEmail', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /**
+      #swagger.tags = ['Utenti']
+      #swagger.description = "Aggiorna l'email"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+           'application/json': {
+               schema: {$ref: "#/components/schemas/emailSchema"}
+              }
+           }
+        }
+     */
 });
 
 app.put('/users/:id/updateFavHero', async (req, res) => {
@@ -112,6 +189,18 @@ app.put('/users/:id/updateFavHero', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /**
+      #swagger.tags = ['Utenti']
+      #swagger.description = "Aggiorna l'eroe preferito"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+           'application/json': {
+               schema: {$ref: "#/components/schemas/favouriteHeroSchema"}
+              }
+           }
+        }
+     */
 })
 
 app.put('/users/:id/updateCoins', async (req, res) => {
@@ -121,6 +210,18 @@ app.put('/users/:id/updateCoins', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /**
+      #swagger.tags = ['Utenti']
+      #swagger.description = "Aggiorna i crediti"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+           'application/json': {
+               schema: {$ref: "#/components/schemas/creditsSchema"}
+              }
+           }
+        }
+     */
 });
 
 app.put('/users/:id/buyBooster', async (req, res) => {
@@ -130,6 +231,20 @@ app.put('/users/:id/buyBooster', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /**
+      #swagger.tags = ['Utenti']
+      #swagger.description = "Aggiorna i pacchetti"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+           'application/json': {
+                schema: {
+                    $boostername: "boosterName"
+                }
+              }
+           }
+        }
+     */
 })
 
 
@@ -141,6 +256,10 @@ app.get('/pacchetti', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Restituisce tutti i pacchetti"
+     */
 })
 
 app.get('/pacchetti/:idPacchetto', async (req, res) => {
@@ -150,6 +269,10 @@ app.get('/pacchetti/:idPacchetto', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Restituisce un pacchetto in base all'id"
+     */
 })
 
 app.delete('/pacchetti/:idPacchetto', async (req, res) => {
@@ -159,6 +282,10 @@ app.delete('/pacchetti/:idPacchetto', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Elimina un pacchetto in base all'id"
+    */
 })
 
 app.post('/pacchetti/creaPacchetto', async (req, res) => {
@@ -168,6 +295,20 @@ app.post('/pacchetti/creaPacchetto', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Crea un pacchetto"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+           'application/json': {
+                schema: {
+                    $ref: "#/components/schemas/boosterSchema"
+                }
+              }
+           }
+        }
+     */
 });
 
 app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
@@ -177,6 +318,16 @@ app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Compra un pacchetto"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+            $boosterName: "boosterName"
+           }
+        }
+     */
 })
 
 app.get('/pacchettiUtente/:userId', async (req, res) => {
@@ -186,6 +337,10 @@ app.get('/pacchettiUtente/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Restituisce i pacchetti di un utente"
+     */
 })
 
 app.put('/apriPacchetto/:userId', async (req, res) => {
@@ -195,6 +350,16 @@ app.put('/apriPacchetto/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Apre un pacchetto"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+            $boosterName: "boosterName"
+           }
+        }
+     */
 })
 
 app.put('/apriTuttiPacchetti/:userId', async (req, res) => {
@@ -204,6 +369,10 @@ app.put('/apriTuttiPacchetti/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Pacchetti']
+      #swagger.description = "Apre tutti i pacchetti"
+     */
 })
 
 // ####################CARTE E SCAMBI########################
@@ -214,6 +383,10 @@ app.get('/carte/:userId/:pageNumber', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Carte']
+      #swagger.description = "Restituisce tutte le carte di un utente divise in pagine"
+     */
 })
 
 app.get('/cartaSingola/:cardId', async (req, res) => {
@@ -223,6 +396,10 @@ app.get('/cartaSingola/:cardId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Carte']
+      #swagger.description = "Restituisce una carta in base all'id"
+     */
 })
 
 app.put('/carte/:userId', async (req, res) => {
@@ -232,6 +409,16 @@ app.put('/carte/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Carte']
+      #swagger.description = "Aggiunge una carta all'album di un utente"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+            $cardId: "cardId"
+           }
+        }
+     */
 })
 
 app.get('/carta/:userId/:cardId', async (req, res) => {
@@ -241,6 +428,10 @@ app.get('/carta/:userId/:cardId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Carte']
+      #swagger.description = "Restituisce una carta in base all'id dell'utente e dell'id della carta"
+     */
 })
 
 app.delete('/carte/:userId/:cardId', async (req, res) => {
@@ -250,6 +441,10 @@ app.delete('/carte/:userId/:cardId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Carte']
+      #swagger.description = "Elimina una carta in base all'id dell'utente e dell'id della carta"
+     */
 })
 
 app.put('/vendiCarta/:userId/:cardId', async (req, res) => {
@@ -259,6 +454,10 @@ app.put('/vendiCarta/:userId/:cardId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Carte']
+      #swagger.description = "Vende una carta in base all'id dell'utente e dell'id della carta"
+     */
 })
 
 app.post('/scambi/:userId', async (req, res) => {
@@ -268,6 +467,20 @@ app.post('/scambi/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Crea uno scambio"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+            'application/json': {
+                schema: {
+                    $ref: "#/components/schemas/scambioSchema"
+                }
+              }
+           }
+        }
+     */
 })
 
 app.get('/scambi', async (_, res) => {
@@ -277,6 +490,10 @@ app.get('/scambi', async (_, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Restituisce tutti gli scambi attivi"
+     */
 })
 
 app.get('/scambi/:userId', async (req, res) => {
@@ -286,6 +503,10 @@ app.get('/scambi/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Restituisce gli scambi di un utente"
+     */
 })
 
 app.get('/scambio/:scambioId', async (req, res) => {
@@ -295,6 +516,10 @@ app.get('/scambio/:scambioId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Restituisce uno scambio in base all'id"
+     */
 })
 
 app.put('/accettaScambio/:userId/:scambioId', async (req, res) => {
@@ -304,6 +529,10 @@ app.put('/accettaScambio/:userId/:scambioId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Accetta uno scambio"
+     */
 })
 
 app.delete('/scambi/:userId/:scambioId', async (req, res) => {
@@ -313,6 +542,10 @@ app.delete('/scambi/:userId/:scambioId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Elimina uno scambio"
+     */
 })
 
 app.get('/scambiWithSameCards/:userId', async (req, res) => {
@@ -322,10 +555,24 @@ app.get('/scambiWithSameCards/:userId', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Scambi']
+      #swagger.description = "Restituisce gli scambi con le stesse carte"
+      #swagger.requestBody = {
+        required: true,
+       content: {
+            'application/json': {
+                schema: {
+                    $cards:[]
+                }
+              }
+           }
+        }
+     */
 })
 
-// #MARVEL API
-app.get('/heroes', async (req, res) => {
+// #HP API
+app.get('/maghi', async (req, res) => {
     try {
         //  var result = await marvel.getFromMarvel('public/characters');
         //const result = await lib.getHeroes();
@@ -334,16 +581,24 @@ app.get('/heroes', async (req, res) => {
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Maghi']
+      #swagger.description = "Restituisce tutti i maghi"
+     */
 });
 
 
-app.get('/randomHeroes/:numberOfHeroes', async (req, res) => {
+app.get('/randomMaghi/:numberOfMaghi', async (req, res) => {
     try {
-        const result = await lib.getRandomCards(req.params.numberOfHeroes);
+        const result = await lib.getRandomCards(req.params.numberOfMaghi);
         res.status(200).json(result);
     } catch (err) {
         lib.handleError(err, res);
     }
+    /*
+      #swagger.tags = ['Maghi']
+      #swagger.description = "Restituisce un numero casuale di maghi"
+     */
 })
 
 app.listen(3001, () => {

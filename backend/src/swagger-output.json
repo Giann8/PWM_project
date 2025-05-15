@@ -1,0 +1,1395 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "description": "API documentation",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Utenti",
+      "description": "Tutte le api per la gestione Utenti"
+    },
+    {
+      "name": "Maghi",
+      "description": "Api per la gestione delle informazioni sui maghi"
+    },
+    {
+      "name": "Scambi",
+      "description": "Api per la gestione degli scambi"
+    },
+    {
+      "name": "Pacchetti",
+      "description": "Api per la gestione dei pacchetti di figurine"
+    },
+    {
+      "name": "Carte",
+      "description": "Api per la gestione delle carte"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Registrazione di un nuovo utente",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/userReg"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Restituisce tutti gli utenti presenti",
+        "responses": {
+          "200": {
+            "description": "Utenti trovati",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/userSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Restituisce un utente in base all'id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/userLogin"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deleteUser/{id}": {
+      "delete": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Elimina un utente in base all'id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/{id}/updateUsername": {
+      "put": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Aggiorna il nome utente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/usernameSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/updatePassword": {
+      "put": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Aggiorna la password",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/userPasswordSchema"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/userPasswordSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/updateEmail": {
+      "put": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Aggiorna l'email",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/emailSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/updateFavHero": {
+      "put": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Aggiorna l'eroe preferito",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/favouriteHeroSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/updateCoins": {
+      "put": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Aggiorna i crediti",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/creditsSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/buyBooster": {
+      "put": {
+        "tags": [
+          "Utenti"
+        ],
+        "description": "Aggiorna i pacchetti",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$boostername": "boosterName"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pacchetti": {
+      "get": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Restituisce tutti i pacchetti",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/pacchetti/{idPacchetto}": {
+      "get": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Restituisce un pacchetto in base all'id",
+        "parameters": [
+          {
+            "name": "idPacchetto",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Elimina un pacchetto in base all'id",
+        "parameters": [
+          {
+            "name": "idPacchetto",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/pacchetti/creaPacchetto": {
+      "post": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Crea un pacchetto",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/boosterSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pacchetti/compraPacchetto/{userId}": {
+      "put": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Compra un pacchetto",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "$boosterName": "boosterName"
+          }
+        }
+      }
+    },
+    "/pacchettiUtente/{userId}": {
+      "get": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Restituisce i pacchetti di un utente",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/apriPacchetto/{userId}": {
+      "put": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Apre un pacchetto",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "$boosterName": "boosterName"
+          }
+        }
+      }
+    },
+    "/apriTuttiPacchetti/{userId}": {
+      "put": {
+        "tags": [
+          "Pacchetti"
+        ],
+        "description": "Apre tutti i pacchetti",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/carte/{userId}/{pageNumber}": {
+      "get": {
+        "tags": [
+          "Carte"
+        ],
+        "description": "Restituisce tutte le carte di un utente divise in pagine",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/cartaSingola/{cardId}": {
+      "get": {
+        "tags": [
+          "Carte"
+        ],
+        "description": "Restituisce una carta in base all'id",
+        "parameters": [
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/carte/{userId}": {
+      "put": {
+        "tags": [
+          "Carte"
+        ],
+        "description": "Aggiunge una carta all'album di un utente",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "$cardId": "cardId"
+          }
+        }
+      }
+    },
+    "/carta/{userId}/{cardId}": {
+      "get": {
+        "tags": [
+          "Carte"
+        ],
+        "description": "Restituisce una carta in base all'id dell'utente e dell'id della carta",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/carte/{userId}/{cardId}": {
+      "delete": {
+        "tags": [
+          "Carte"
+        ],
+        "description": "Elimina una carta in base all'id dell'utente e dell'id della carta",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/vendiCarta/{userId}/{cardId}": {
+      "put": {
+        "tags": [
+          "Carte"
+        ],
+        "description": "Vende una carta in base all'id dell'utente e dell'id della carta",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/scambi/{userId}": {
+      "post": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Crea uno scambio",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/scambioSchema"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Restituisce gli scambi di un utente",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/scambi": {
+      "get": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Restituisce tutti gli scambi attivi",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/scambio/{scambioId}": {
+      "get": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Restituisce uno scambio in base all'id",
+        "parameters": [
+          {
+            "name": "scambioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/accettaScambio/{userId}/{scambioId}": {
+      "put": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Accetta uno scambio",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scambioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/scambi/{userId}/{scambioId}": {
+      "delete": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Elimina uno scambio",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scambioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/scambiWithSameCards/{userId}": {
+      "get": {
+        "tags": [
+          "Scambi"
+        ],
+        "description": "Restituisce gli scambi con le stesse carte",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$cards": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "/maghi": {
+      "get": {
+        "tags": [
+          "Maghi"
+        ],
+        "description": "Restituisce tutti i maghi",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/randomMaghi/{numberOfMaghi}": {
+      "get": {
+        "tags": [
+          "Maghi"
+        ],
+        "description": "Restituisce un numero casuale di maghi",
+        "parameters": [
+          {
+            "name": "numberOfMaghi",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "userSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Mario"
+          },
+          "password": {
+            "type": "string",
+            "example": "password"
+          },
+          "email": {
+            "type": "string",
+            "example": "MarioRossi@unimi.it"
+          },
+          "username": {
+            "type": "string",
+            "example": "SuperMario"
+          },
+          "favourite_hero": {
+            "type": "number",
+            "example": 1009368
+          },
+          "sticker_album": {
+            "type": "object",
+            "properties": {
+              "1009368": {
+                "type": "number",
+                "example": 1
+              },
+              "1009610": {
+                "type": "number",
+                "example": 2
+              }
+            }
+          },
+          "credits": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "name",
+          "password",
+          "email",
+          "username",
+          "favourite_hero",
+          "sticker_album",
+          "credits"
+        ],
+        "xml": {
+          "name": "userSchema"
+        }
+      },
+      "userReg": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Mario"
+          },
+          "username": {
+            "type": "string",
+            "example": "SuperMario"
+          },
+          "password": {
+            "type": "string",
+            "example": "password"
+          },
+          "email": {
+            "type": "string",
+            "example": "MarioRossi@gmail.com"
+          },
+          "favourite_hero": {
+            "type": "number",
+            "example": 1009368
+          }
+        },
+        "required": [
+          "name",
+          "username",
+          "password",
+          "email",
+          "favourite_hero"
+        ],
+        "xml": {
+          "name": "userReg"
+        }
+      },
+      "userLogin": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "SuperMario"
+          },
+          "password": {
+            "type": "string",
+            "example": "password"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "xml": {
+          "name": "userLogin"
+        }
+      },
+      "usernameSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "SuperMario"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "xml": {
+          "name": "usernameSchema"
+        }
+      },
+      "userPasswordSchema": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "password"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "xml": {
+          "name": "userPasswordSchema"
+        }
+      },
+      "emailSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "MarioRossi@gmail.com"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "xml": {
+          "name": "emailSchema"
+        }
+      },
+      "creditsSchema": {
+        "type": "object",
+        "properties": {
+          "credits": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "credits"
+        ],
+        "xml": {
+          "name": "creditsSchema"
+        }
+      },
+      "favouriteHeroSchema": {
+        "type": "object",
+        "properties": {
+          "favourite_hero": {
+            "type": "number",
+            "example": 1009368
+          }
+        },
+        "required": [
+          "favourite_hero"
+        ],
+        "xml": {
+          "name": "favouriteHeroSchema"
+        }
+      },
+      "boosterSchema": {
+        "type": "object",
+        "properties": {
+          "boosterName": {
+            "type": "string",
+            "example": "Booster"
+          },
+          "price": {
+            "type": "number",
+            "example": 0.99
+          },
+          "cardNumber": {
+            "type": "number",
+            "example": 5
+          }
+        },
+        "required": [
+          "boosterName",
+          "price",
+          "cardNumber"
+        ],
+        "xml": {
+          "name": "boosterSchema"
+        }
+      },
+      "scambioSchema": {
+        "type": "object",
+        "properties": {
+          "carteRichieste": {
+            "type": "array",
+            "example": [
+              1009368,
+              1009610
+            ],
+            "items": {
+              "type": "number"
+            }
+          },
+          "carteOfferte": {
+            "type": "array",
+            "example": [
+              1009368,
+              1009610
+            ],
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "carteRichieste",
+          "carteOfferte"
+        ],
+        "xml": {
+          "name": "scambioSchema"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "apikey"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
+}

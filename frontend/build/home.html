@@ -10,7 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 
-<body>
+<body style="background-image: url(assets/sfondo_progetto.jpg) ;   background-repeat: no-repeat;
+background-attachment: fixed;
+background-size: 100% 100%; ">
     <div class="main">
         <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid sticky-top">
 
@@ -69,10 +71,10 @@
                 </div>
             </div>
         </nav>
-        <div class="container align-content-center">
-            <h1 class="text-center m-3">Ecco alcune carte che potresti trovare</h1>
+        <div class="container align-content-center" >
+            <h1 class="text-center m-3" style="color: white;">Ecco alcune carte che potresti trovare</h1>
             <div class="d-flex justify-content-center">
-                <div id="carosello" class="card m-3 d-flex " style="height:20rem; width:20rem;">
+                <div id="carosello" class="card m-3 d-flex flex-center" style="height:20rem; width:20rem;">
                     <div id="carouselExampleAutoplaying" class="carousel slide card-body" data-bs-ride="carousel">
                         <div class="carousel-inner align-items-center m-4">
                         </div>
@@ -84,12 +86,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="carosello" class="card m-3 align-content-center" style="height:20rem; width:20rem;">
-                    <div id="carouselExampleAutoplaying" class="carousel slide card-body m-4" data-bs-ride="carousel">
-                        <div class="carousel-inner align-items-center">
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </div>
 
@@ -99,21 +96,18 @@
     <script>
 
         onload = async () => {
-            heroes = await getRandomHeroes(5);
-            heroes2 = await getRandomHeroes(5);
-            heroes3 = await getRandomHeroes(5);
-            showHeroCarousel(heroes, 0);
-            showHeroCarousel(heroes2, 1);
-            showHeroCarousel(heroes3, 2);
-
+            maghi = await getRandomMaghi(5);
+            maghi2 = await getRandomMaghi(5);
+            showHeroCarousel(maghi, 0);
+            showHeroCarousel(maghi2, 1);
         }
 
-        function showHeroCarousel(heroes, n) {
-            for (i = 0; i < heroes.length; i++) {
+        function showHeroCarousel(maghi, n) {
+            for (i = 0; i < maghi.length; i++) {
 
                 document.getElementsByClassName("carousel-inner align-items-center")[n].innerHTML +=
-                    `<div class="carousel-item text-center card border-round " style="width:15rem; height:15rem;">
-                        <img src="${heroes[i].image}" class="card-img-top img-fluid"  alt="${heroes[i].name}" style="height:100%">
+                    `<div class="carousel-item text-center card border-round align-center" style="width:15rem; height:15rem;">
+                        <img src="${maghi[i].image}" class="card-img-top img-fluid"  alt="${maghi[i].name}" style="height:100%">
                         </div>`;
                 if (i == 0) {
                     document.getElementsByClassName("carousel-item text-center card ")[5 * n].classList.add("active");

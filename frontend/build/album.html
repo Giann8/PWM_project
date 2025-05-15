@@ -109,7 +109,7 @@
             </div>
             <div id="container" class="d-flex flex-wrap justify-content-center">
                 <div id="card-hero" class="card m-2 d-none h-80" style="width:10rem; ">
-                    <img src="assets/Carte_hp.jpg" class="card-img-top img-fluid" style="width: 100%; height: 40%;" alt="">
+                    <img src="assets/Carte_hp.jpg" class="card-img-top img-fluid" style="width: 100%; max-height: 40%;" alt="">
                     <h5 class="card-title">nome eroe
                     </h5>
                     <div class="card-body" style="transform: rotate(0);">
@@ -118,7 +118,7 @@
                         <a href="#" class="text-warning stretched-link"></a>
                     </div>
                     <div class="card-footer text-center">
-                        <div class="card-number"><b>Ne possiedi:</b> <span class="badge text-bg-danger"> numero
+                        <div class="card-number"><b>Ne possiedi:</b> <span class="badge text-bg-danger md-2"> numero
                                 carte</span> </div>
                         <button class="btn btn-danger mt-3 disabled"
                             onclick="showAlert('error',`non puoi vendere l'ultima copia di questa carta`)">Non
@@ -196,10 +196,10 @@
         }
 
 
-        function showCards(heroes) {
+        function showCards(maghi) {
             var card = document.getElementById('card-hero');
-            for (let i = 0; i < heroes.length; i++) {
-                var hero = heroes[i].card;
+            for (let i = 0; i < maghi.length; i++) {
+                var hero = maghi[i].card;
 
                 var clone = card.cloneNode(true);
                 var image = clone.getElementsByClassName('card-img-top')[0];
@@ -217,24 +217,13 @@
                 }
 
 
-                if (description != null && hero.description != "") {
-                    description.innerHTML = `<div class="row">
-                                <div class="col-2 text-truncate" style="width: 100%; height:auto">
-                                    ${hero.description}
-                                </div>
-                                </div>
-                            `;
-                } else {
 
-                    description.innerHTML = `<b class="text-center"><i>-- NO DATA --</i></b>`
 
+                if (maghi[i].quantity != null && numberQuantity != null) {
+                    numberQuantity.innerHTML = `<b>Ne possiedi:</b> <span class="badge text-bg-danger">${maghi[i].quantity}</span>`;
                 }
 
-                if (heroes[i].quantity != null && numberQuantity != null) {
-                    numberQuantity.innerHTML = `<b>Ne possiedi:</b> <span class="badge text-bg-danger">${heroes[i].quantity}</span>`;
-                }
-
-                if (heroes[i].quantity > 1) {
+                if (maghi[i].quantity > 1) {
                     sellCard.classList.remove('disabled');
                     sellCard.setAttribute("onclick", `sellCard(${JSON.stringify(hero.id)},this)`);
                     sellCard.innerHTML = "Vendi";
@@ -285,6 +274,7 @@
                     console.log(err);
                 })
         }
+
 
 
     </script>
