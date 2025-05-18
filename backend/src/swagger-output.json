@@ -298,7 +298,7 @@
         }
       }
     },
-    "/users/{id}/updateFavHero": {
+    "/users/{id}/updateFavMagician": {
       "put": {
         "tags": [
           "Utenti"
