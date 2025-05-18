@@ -182,10 +182,10 @@ app.put('/users/:id/updateEmail', async (req, res) => {
      */
 });
 
-app.put('/users/:id/updateFavHero', async (req, res) => {
+app.put('/users/:id/updateFavMagician', async (req, res) => {
     try {
-        await lib.updateFavSuperhero(req.params.id, req.body.favhero);
-        res.status(200).json({ message: "hero updated correctly" });
+        await lib.updateFavMagician(req.params.id, req.body.fav_hero);
+        res.status(200).json({ message: "Magician updated correctly" });
     } catch (err) {
         lib.handleError(err, res);
     }

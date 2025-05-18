@@ -59,6 +59,11 @@
                     <div id="error-message-email" class="error-message"></div>
                 </div>
 
+                <div class="col mb-3">
+                    <label id="favMagician-label">Mago preferito</label>
+                    <select id="favMagician"></select>
+                    <div id="error-message-magician" class="error-message"></div>
+                </div>
 
                 <div class="col mb-3">
                     <label for="password" class="form-label">Password</label>
@@ -85,6 +90,19 @@
     </div>
 
     <script src="scripts/lib.js"></script>
+    <script>
+        // Popola la select con i nomi dei maghi usando fetch direttamente dall'API
+        window.addEventListener('DOMContentLoaded', async () => {
+            const select = document.getElementById('favMagician');
+            try {
+                const res = await fetch('https://hp-api.onrender.com/api/characters');
+                const cards = await res.json();
+                select.innerHTML = cards.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            } catch (e) {
+                // fallback o errore silenzioso
+            }
+        });
+    </script>
 </body>
 
 

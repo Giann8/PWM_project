@@ -27,8 +27,7 @@
                         href="http://localhost:3000/cardMarket.html">cardMarket</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active " aria-current="page"
-                        href="http://localhost:3000/cards.html">Cards</a>
+                    <a class="nav-link active " aria-current="page" href="http://localhost:3000/cards.html">Cards</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
@@ -36,8 +35,8 @@
 
             </ul>
             <div id="user_nav" class="nav-item dropdown d-none">
-                <button id="username" type="button" class="btn btn-secondary dropdown-toggle"
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button id="username" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
                     Offset
                 </button>
                 <div class="dropdown-menu dropdown-menu-end">
@@ -88,6 +87,7 @@
                             qua!</a></p>
                     <p id="hai-pacchetti" class="d-none">Inoltre hai <b id="numero-pacchetti"></b> pacchetti da aprire
                     </p>
+                    <p id="favcard">Il tuo eroe preferito è <b id="favcard-name"></b></p>
                 </div>
                 <button class="btn btn-primary m-3" id="logout" onclick="logout()">Logout</button>
             </div>
@@ -140,6 +140,16 @@
                         <button type="submit" class="btn btn-secondary">Update username</button>
                     </div>
                 </form>
+                <form id="update-favmagician-form" method="dialog" class="row py-3 justify-content-center" novalidate>
+                    <label id="favhero-label">Modifica eroe preferito</label>
+                    <div class="col-auto">
+                        <select id="favmagician" class="form-control"></select>
+                        <div id="error-message-favmagician" class="error-message"></div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-secondary">Aggiorna eroe</button>
+                    </div>
+                </form>
                 <div class="col-auto py-3">
                     <button id="delete-account-button" type="button" class="btn btn-outline-danger 0">Delete
                         account</button>
@@ -150,6 +160,8 @@
     </div>
     <script src="/scripts/lib.js"></script>
     <script>
+        populateFavHeroSelect();
+
         onload = async () => {
             if (checkLogin()) {
                 await getUserInfo();
@@ -167,7 +179,63 @@
 
             document.getElementById('user-coins').innerHTML = localStorage.getItem("coins");
 
+            // Trova la carta preferita e mostra il nome
+            const favId = localStorage.getItem('favMagician');
+            if (favId && favId.length >2) {
+                const fav = await getCardById(JSON.parse(favId));
+                console.log(fav);
+                document.getElementById('favcard-name').innerText = fav[0].name;
+            } else {
+                document.getElementById('favcard-name').innerText = 'Nessuno';
+            }
         };
+
+        async function getCardById(id) {
+            try {
+                const res = await fetch(`https://hp-api.onrender.com/api/character/${id}`);
+                const card = await res.json();
+                return card;
+            } catch (e) {
+                console.error('Errore nel recupero della carta:', e);
+                return null;
+            }
+        }
+
+
+
+        async function populateFavHeroSelect() {
+            const select = document.getElementById('favmagician');
+            let currentFav = "";
+
+            currentFav = JSON.parse(localStorage.getItem('favMagician')) || "";
+            console.log(currentFav);
+            try {
+                const res = await fetch('https://hp-api.onrender.com/api/characters');
+                const maghi = await res.json();
+                select.innerHTML = maghi.map(m =>
+                    `<option value="${m.id}"${m.id === currentFav ? ' selected' : ''}>${m.name}</option>`
+                ).join('');
+            } catch (e) {
+                select.innerHTML = '<option>Errore caricamento maghi</option>';
+            }
+        }
+
+        if (document.URL.includes("userPage.html")) {
+            const form = document.getElementById('update-email-form');
+            form.addEventListener('submit', async () => await updateEmail());
+
+            const form2 = document.getElementById('update-password-form');
+            form2.addEventListener('submit', async () => await updatePassword());
+
+            const form3 = document.getElementById('update-username-form');
+            form3.addEventListener('submit', async () => await updateUsername());
+
+            const form4 = document.getElementById('update-favmagician-form');
+            form4.addEventListener('submit', async () => await updateFavMagician());
+
+            const deleteAccountButton = document.getElementById('delete-account-button');
+            deleteAccountButton.addEventListener('click', async () => await deleteAccount());
+        }
 
 
     </script>

@@ -158,7 +158,7 @@ async function registerUser(res, user) {
             coins: 0,
             album: {
             },
-            favorite_hero: user.favorite_hero || "",
+            favorite_hero: user.fav_hero || "",
             Boosters: {}
         });
 
@@ -383,7 +383,7 @@ async function updatePassword(id, body) {
     }
 }
 
-async function updateFavSuperhero(id, hero) {
+async function updateFavMagician(id, hero) {
     if (hero.length <= 0) {
         throw new Error("Format: Nome supereroe non valido")
     }
@@ -1151,7 +1151,7 @@ module.exports = {
     updateUsername,
     updatePassword,
     updateEmail,
-    updateFavSuperhero,
+    updateFavMagician,
     addPersonalBoosters,
     removePersonalBooster,
     searchEmail,

@@ -139,19 +139,8 @@ if (document.URL.includes("register.html")) {
     form.addEventListener('submit', async () => await validateAndRegister());
 }
 
-if (document.URL.includes("userPage.html")) {
-    const form = document.getElementById('update-email-form');
-    form.addEventListener('submit', async () => await updateEmail());
 
-    const form2 = document.getElementById('update-password-form');
-    form2.addEventListener('submit', async () => await updatePassword());
 
-    const form3 = document.getElementById('update-username-form');
-    form3.addEventListener('submit', async () => await updateUsername());
-
-    const deleteAccountButton = document.getElementById('delete-account-button');
-    deleteAccountButton.addEventListener('click', async () => await deleteAccount());
-}
 
 async function validateAndLogin() {
     if (checkValidEmail(0) && checkValidPassword(1)) {
@@ -169,6 +158,7 @@ async function register() {
     if (!checkValidUsername() && !checkValidEmail() && !checkValidPassword()) {
         return;
     }
+    const username = document.getElementById('username').value
     var message_error = document.getElementsByClassName('error-message');
     const options = {
         method: 'POST',
@@ -179,7 +169,8 @@ async function register() {
         body: JSON.stringify({
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
-            username: document.getElementById('username').value
+            username: username,
+            fav_hero: document.getElementById('favMagician').value
         })
     }
     await fetch(url + '/register?apikey=' + apikey, options)
@@ -191,6 +182,7 @@ async function register() {
         .then(({ status, json }) => {
             if (status === 200) {
                 localStorage.setItem('userId', JSON.stringify(json._id));
+                localStorage.setItem('username', JSON.stringify(username));
                 window.location.href = "http://localhost:3000/userPage.html";
             } else {
                 message_error[3].innerHTML = JSON.stringify(json.error);
@@ -256,6 +248,7 @@ async function getUserInfo() {
                 localStorage.setItem('username', JSON.stringify(json.username));
                 localStorage.setItem('coins', JSON.parse(json.coins));
                 localStorage.setItem('boostersNumber', boostersQuantity);
+                localStorage.setItem('favMagician', JSON.stringify(json.favorite_hero));
                 document.getElementById('utente').innerHTML = json.username;
                 document.getElementById('old-email').value = json.email;
                 document.getElementById('coins').innerHTML = json.coins;
@@ -264,6 +257,39 @@ async function getUserInfo() {
                 console.log(json.coins);
             } else {
                 console.log("Error fetching user info");
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+}
+
+async function updateFavMagician(magician) {
+    var magicianId = magician || document.getElementById('favmagician').value;
+    console.log(magicianId);
+    var userId = JSON.parse(localStorage.getItem('userId'));
+    const options = {
+        method: 'PUT',
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            fav_hero: magicianId
+        })
+    }
+
+    await fetch(url + '/users/' + userId + '/updateFavMagician?apikey=' + apikey, options)
+        .then(async (res) => {
+            const json = await res.json();
+            return { status: res.status, json: json }
+        })
+        .then(({ status, json }) => {
+            if (status == 200) {
+                localStorage.setItem('favMagician', JSON.stringify(magicianId));
+                window.location.reload();
+            } else {
+                console.log(json.error);
             }
         })
         .catch(err => {
@@ -638,31 +664,6 @@ async function getMyScambi() {
     return mieiScambi;
 }
 
-async function getMaghi() {
-    const options = {
-        method: 'GET',
-        headers: {
-            accept: 'application/json',
-            'Content-Type': 'application/json'
-        }
-    };
-    maghi = [];
-    await fetch(url + '/maghi?apikey=' + apikey, options)
-        .then(async (res) => {
-            const json = await res.json();
-            return { status: res.status, json: json };
-        })
-        .then(({ status, json }) => {
-            if (status == 200) {
-                maghi = json;
-            }
-        })
-        .catch(err => {
-            console.log(err);
-        })
-    return maghi;
-}
-
 
 async function getRandomMaghi(numberOfmaghi) {
     const options = {
@@ -699,7 +700,7 @@ async function getAllCards() {
         }
     };
 
-    const allCards = await fetch(url+'/maghi/'+'?apikey=' + apikey, options)
+    const allCards = await fetch(url + '/maghi/' + '?apikey=' + apikey, options)
         .then(async res => {
             json = await res.json();
             return ({ status: res.status, json: json })
@@ -773,7 +774,6 @@ async function getUserCardById(cardId, userId) {
 
 async function userHasCard(cardId, userId) {
     const card = await getUserCardById(cardId, userId);
-    console.log(card != null)
     return card != null;
 }
 
@@ -805,6 +805,7 @@ function showCard(card, hero, possessed) {
     var description = clone.getElementsByClassName('card-description')[0];
     var house = clone.getElementsByClassName('card-house')[0];
     var cardPage = clone.getElementsByClassName('stretched-link')[0];
+    var favoriteButton = clone.getElementsByClassName('btn btn-primary btn-fav')[0];
 
     if (cardPage != undefined) {
         cardPage.href = "heroCard.html?cardId=" + hero.id;
@@ -838,6 +839,20 @@ function showCard(card, hero, possessed) {
             } else {
                 house.innerHTML = `<p>No house</p>`;
             }
+        }
+    }
+    if (favoriteButton != undefined) {
+        const favorite_hero = JSON.parse(localStorage.getItem("favMagician"));
+
+        if (hero.id == favorite_hero) {
+            favoriteButton.classList.add("btn-warning");
+            favoriteButton.classList.add("disabled");
+            favoriteButton.classList.remove("btn-primary");
+            favoriteButton.innerHTML = "This is your favorite magician";
+        } else {
+            favoriteButton.innerHTML = "Change favorite magician";
+            favoriteButton.setAttribute("onClick", `updateFavMagician('${hero.id}')`);
+            console.log(favoriteButton)
         }
     }
 
@@ -965,7 +980,7 @@ function showOffers(offers) {
         clone.querySelector("#requested-card").textContent = offer.carteRichieste.map((carta) => (carta.name)).join(", ");
         var acceptButton = clone.querySelector(".btn");
 
-        if(localStorage.getItem("userId") == null) {
+        if (localStorage.getItem("userId") == null) {
             acceptButton.classList.add("disabled");
             acceptButton.innerHTML = "<b>Accedi per accettare l'offerta</b>";
         } else if (localStorage.getItem("userId").valueOf() == JSON.stringify(offer.userId)) {
