@@ -376,45 +376,6 @@
         }
       }
     },
-    "/users/{id}/buyBooster": {
-      "put": {
-        "tags": [
-          "Utenti"
-        ],
-        "description": "Aggiorna i pacchetti",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$boostername": "boosterName"
-              }
-            }
-          }
-        }
-      }
-    },
     "/pacchetti": {
       "get": {
         "tags": [
@@ -439,7 +400,7 @@
         "tags": [
           "Pacchetti"
         ],
-        "description": "Restituisce un pacchetto in base all'id",
+        "description": "Restituisce un pacchetto in base al suo id ",
         "parameters": [
           {
             "name": "idPacchetto",
@@ -466,7 +427,7 @@
         "tags": [
           "Pacchetti"
         ],
-        "description": "Elimina un pacchetto in base all'id",
+        "description": "Elimina un pacchetto in base al suo id",
         "parameters": [
           {
             "name": "idPacchetto",
@@ -524,7 +485,7 @@
         "tags": [
           "Pacchetti"
         ],
-        "description": "Compra un pacchetto",
+        "description": "Compra un pacchetto e lo aggiunge ai pacchetti dell'utente",
         "parameters": [
           {
             "name": "userId",
@@ -559,7 +520,7 @@
         "tags": [
           "Pacchetti"
         ],
-        "description": "Restituisce i pacchetti di un utente",
+        "description": "Restituisce i pacchetti posseduti da un utente",
         "parameters": [
           {
             "name": "userId",
@@ -588,7 +549,7 @@
         "tags": [
           "Pacchetti"
         ],
-        "description": "Apre un pacchetto",
+        "description": "Apre un pacchetto dato il suo nome e l'id dell'utente a cui appartiene.",
         "parameters": [
           {
             "name": "userId",
@@ -623,7 +584,7 @@
         "tags": [
           "Pacchetti"
         ],
-        "description": "Apre tutti i pacchetti",
+        "description": "Apre tutti i pacchetti dell'utente",
         "parameters": [
           {
             "name": "userId",
@@ -652,7 +613,7 @@
         "tags": [
           "Carte"
         ],
-        "description": "Restituisce tutte le carte di un utente divise in pagine",
+        "description": "Restituisce tutte le carte di un utente dato l'id dell'utente e il numero di pagina",
         "parameters": [
           {
             "name": "userId",
@@ -689,7 +650,7 @@
         "tags": [
           "Carte"
         ],
-        "description": "Restituisce una carta in base all'id",
+        "description": "Restituisce una carta specifica in base al suo id",
         "parameters": [
           {
             "name": "cardId",
@@ -753,7 +714,7 @@
         "tags": [
           "Carte"
         ],
-        "description": "Restituisce una carta in base all'id dell'utente e dell'id della carta",
+        "description": "Restituisce una carta in base al suo id e all'id dell'utente che la possiede",
         "parameters": [
           {
             "name": "userId",
@@ -790,7 +751,7 @@
         "tags": [
           "Carte"
         ],
-        "description": "Elimina una carta in base all'id dell'utente e dell'id della carta",
+        "description": "Elimina una carta in base al suo id e all'id dell'utente che la possiede",
         "parameters": [
           {
             "name": "userId",
@@ -827,7 +788,7 @@
         "tags": [
           "Carte"
         ],
-        "description": "Vende una carta in base all'id dell'utente e dell'id della carta",
+        "description": "Vende una carta in base al suo id e all'id dell'utente che la possiede",
         "parameters": [
           {
             "name": "userId",
@@ -864,7 +825,7 @@
         "tags": [
           "Scambi"
         ],
-        "description": "Crea uno scambio",
+        "description": "Permette ad un utente di creare uno scambio di carte",
         "parameters": [
           {
             "name": "userId",
@@ -978,7 +939,7 @@
         "tags": [
           "Scambi"
         ],
-        "description": "Accetta uno scambio",
+        "description": "Permette di accettare uno scambio tra due utenti",
         "parameters": [
           {
             "name": "userId",
@@ -1052,7 +1013,7 @@
         "tags": [
           "Scambi"
         ],
-        "description": "Restituisce gli scambi con le stesse carte",
+        "description": "Restituisce gli scambi che possiedono già le carde date",
         "parameters": [
           {
             "name": "userId",
@@ -1229,9 +1190,9 @@
       "userLogin": {
         "type": "object",
         "properties": {
-          "username": {
+          "email": {
             "type": "string",
-            "example": "SuperMario"
+            "example": "MarioRossi@gmail.com"
           },
           "password": {
             "type": "string",
@@ -1239,7 +1200,7 @@
           }
         },
         "required": [
-          "username",
+          "email",
           "password"
         ],
         "xml": {
@@ -1330,11 +1291,11 @@
           },
           "price": {
             "type": "number",
-            "example": 0.99
+            "example": 8
           },
           "cardNumber": {
             "type": "number",
-            "example": 5
+            "example": 4
           }
         },
         "required": [

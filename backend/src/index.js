@@ -224,31 +224,9 @@ app.put('/users/:id/updateCoins', async (req, res) => {
      */
 });
 
-app.put('/users/:id/buyBooster', async (req, res) => {
-    try {
-        const result = await lib.addPersonalBoosters(req.params.id, req.body.booster);
-        res.status(200).json({ message: "Boosters updated: " + result });
-    } catch (err) {
-        lib.handleError(err, res);
-    }
-    /**
-      #swagger.tags = ['Utenti']
-      #swagger.description = "Aggiorna i pacchetti"
-      #swagger.requestBody = {
-        required: true,
-       content: {
-           'application/json': {
-                schema: {
-                    $boostername: "boosterName"
-                }
-              }
-           }
-        }
-     */
-})
 
 
-//pacchetti
+//############pacchetti###############
 app.get('/pacchetti', async (req, res) => {
     try {
         const result = await lib.getPacchetti(res);
@@ -271,7 +249,7 @@ app.get('/pacchetti/:idPacchetto', async (req, res) => {
     }
     /*
       #swagger.tags = ['Pacchetti']
-      #swagger.description = "Restituisce un pacchetto in base all'id"
+      #swagger.description = "Restituisce un pacchetto in base al suo id "
      */
 })
 
@@ -284,7 +262,7 @@ app.delete('/pacchetti/:idPacchetto', async (req, res) => {
     }
     /*
       #swagger.tags = ['Pacchetti']
-      #swagger.description = "Elimina un pacchetto in base all'id"
+      #swagger.description = "Elimina un pacchetto in base al suo id"
     */
 })
 
@@ -320,7 +298,7 @@ app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Pacchetti']
-      #swagger.description = "Compra un pacchetto"
+      #swagger.description = "Compra un pacchetto e lo aggiunge ai pacchetti dell'utente"
       #swagger.requestBody = {
         required: true,
        content: {
@@ -339,7 +317,7 @@ app.get('/pacchettiUtente/:userId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Pacchetti']
-      #swagger.description = "Restituisce i pacchetti di un utente"
+      #swagger.description = "Restituisce i pacchetti posseduti da un utente"
      */
 })
 
@@ -352,7 +330,7 @@ app.put('/apriPacchetto/:userId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Pacchetti']
-      #swagger.description = "Apre un pacchetto"
+      #swagger.description = "Apre un pacchetto dato il suo nome e l'id dell'utente a cui appartiene."
       #swagger.requestBody = {
         required: true,
        content: {
@@ -371,7 +349,7 @@ app.put('/apriTuttiPacchetti/:userId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Pacchetti']
-      #swagger.description = "Apre tutti i pacchetti"
+      #swagger.description = "Apre tutti i pacchetti dell'utente"
      */
 })
 
@@ -385,7 +363,7 @@ app.get('/carte/:userId/:pageNumber', async (req, res) => {
     }
     /*
       #swagger.tags = ['Carte']
-      #swagger.description = "Restituisce tutte le carte di un utente divise in pagine"
+      #swagger.description = "Restituisce tutte le carte di un utente dato l'id dell'utente e il numero di pagina"
      */
 })
 
@@ -398,7 +376,7 @@ app.get('/cartaSingola/:cardId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Carte']
-      #swagger.description = "Restituisce una carta in base all'id"
+      #swagger.description = "Restituisce una carta specifica in base al suo id"
      */
 })
 
@@ -430,7 +408,7 @@ app.get('/carta/:userId/:cardId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Carte']
-      #swagger.description = "Restituisce una carta in base all'id dell'utente e dell'id della carta"
+      #swagger.description = "Restituisce una carta in base al suo id e all'id dell'utente che la possiede"
      */
 })
 
@@ -443,7 +421,7 @@ app.delete('/carte/:userId/:cardId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Carte']
-      #swagger.description = "Elimina una carta in base all'id dell'utente e dell'id della carta"
+      #swagger.description = "Elimina una carta in base al suo id e all'id dell'utente che la possiede"
      */
 })
 
@@ -456,7 +434,7 @@ app.put('/vendiCarta/:userId/:cardId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Carte']
-      #swagger.description = "Vende una carta in base all'id dell'utente e dell'id della carta"
+      #swagger.description = "Vende una carta in base al suo id e all'id dell'utente che la possiede"
      */
 })
 
@@ -469,7 +447,7 @@ app.post('/scambi/:userId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Scambi']
-      #swagger.description = "Crea uno scambio"
+      #swagger.description = "Permette ad un utente di creare uno scambio di carte"
       #swagger.requestBody = {
         required: true,
        content: {
@@ -531,7 +509,7 @@ app.put('/accettaScambio/:userId/:scambioId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Scambi']
-      #swagger.description = "Accetta uno scambio"
+      #swagger.description = "Permette di accettare uno scambio tra due utenti"
      */
 })
 
@@ -557,7 +535,7 @@ app.get('/scambiWithSameCards/:userId', async (req, res) => {
     }
     /*
       #swagger.tags = ['Scambi']
-      #swagger.description = "Restituisce gli scambi con le stesse carte"
+      #swagger.description = "Restituisce gli scambi che possiedono già le carde date"
       #swagger.requestBody = {
         required: true,
        content: {

@@ -14,7 +14,7 @@
 <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid sticky-top">
 
-        <div class="navbar-brand mx-2 mb-0 h1">Progetto Web</div>
+        <div class="navbar-brand mx-2 mb-0 h1">AFSE</div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
             aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -109,15 +109,12 @@
             onload = async () => {
                 showSpinner()
                 const response = await getCardById(cardId);
-                console.log(response);
 
                 var card = document.getElementById('card-hero');
                 if (checkLogin() && await userHasCard(cardId)) {
                     showCard(card, response, true);
-                    console.log(true)
                 } else {
                     showCard(card, response, false);
-                    console.log(false)
                 }
 
                 hideSpinner()

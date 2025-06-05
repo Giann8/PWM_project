@@ -36,7 +36,7 @@ const doc = {
                 $password: 'password',
                 $email: 'MarioRossi@unimi.it',
                 $username: "SuperMario",
-                $favourite_hero: 1009368,
+                $fav_magician: 1009368,
                 $sticker_album: { 1009368: 1, 1009610: 2 },
                 $credits: 0
             },
@@ -45,10 +45,10 @@ const doc = {
                 $username: 'SuperMario',
                 $password: 'password',
                 $email: 'MarioRossi@gmail.com',
-                $favourite_hero: 1009368
+                $fav_magician: 1009368
             },
             userLogin: {
-                $username: 'SuperMario',
+                $email: 'MarioRossi@gmail.com',
                 $password: 'password'
             },
             usernameSchema:{
@@ -64,12 +64,12 @@ const doc = {
                 $credits: 0
             },
             favouriteHeroSchema: {
-                $favourite_hero: 1009368
+                $fav_magician: 1009368
             },
             boosterSchema: {
                 $boosterName: 'Booster',
-                $price: 0.99,
-                $cardNumber: 5
+                $price: 8,
+                $cardNumber: 4
             },
             scambioSchema: {
                 $carteRichieste: [1009368, 1009610],

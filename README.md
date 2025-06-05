@@ -1,41 +1,84 @@
 # Progetto tecnologie e linguaggi web
 
-## TODO
+## Documentazione
 
-- [ ] Gestione profilo dell'utente
+Il progetto è una web app per la gestione di carte collezionabili ([maghi](https://hp-api.onrender.com/)), realizzata con Node.js, Express, MongoDB e frontend in HTML/JS/Bootstrap.
 
-  - [x] login
-  - [x] registrazione
-  - [x] update informazioni
+### Requisiti
 
-    - Dati:
-      - e-mail
-      - username
-      - password
-      - name
-      - surname
-      - coins
-      - album-vuoto
-      - eroe preferito
+- [Docker e Docker-Compose](https://docs.docker.com/get-started/) installati;
+- [Node.js](https://nodejs.org/en/download) (per l'avvio senza Docker);
+- [MongoDB](https://www.mongodb.com/docs/manual/installation/) (per l'avvio senza Docker);
+- Connessione wifi (anche se con hosting locale) per poter effettuare il collegamento all'apposita API e a bootstrap.
 
-  - [x] modifica informazioni
-  - [x] rimozione profilo
+### Avvio con Docker
 
-- [ ] acquisto crediti da spendere: "/shop"
-  - [ ] acquisto bustine
-    - busta normale (3,5,7 carte)
-    - busta anti_eroi
-    - busta eroi
-    - busta villains
-  
-  - [x] acquisto coins
-    - aggiunta metodo di pagamento
-  
-  - [ ] vendita carte
-- [ ] gestione scambio figurine
+1. scaricare il file
 
-## Funzioni
+2. Eseguire il seguenti comando nel terminale:
+3. ``` cd <nome-directory> && docker-compose up --build ``` o semplicemente ```docker-compose up --build``` se già all'interno della directory, per avviare in background utilizzare ```docker-compose up -d --build```, eventuali log possono essere visualizzati successivamente attraverso i comandi presenti nell'apposita [Documentazione](https://docs.docker.com/reference/cli/docker/container/)
 
-- [ ] vendita figurine per crediti
-- [ ] gestione controlli integrità
-- [ ] scambi complessi
+4. L'applicazione sarà disponibile su [http://localhost:3000](http://localhost:3000).
+
+
+
+### Funzionalità implementate
+
+- **Registrazione/Login**
+- **Gestione carte**: visualizzazione, vendita, scambio carte maghi
+- **Pacchetti**: acquisto, apertura e gestione pacchetti di carte
+- **Profilo utente**: modifica dati, cambio password/email/username, scelta del mago preferito
+- **Mercato**: offerte di scambio tra utenti
+
+---
+
+## Esempi di funzionamento
+
+1. Login e registrazione:
+    ![Schermata_home_unlogged](./Images/Screenshot%202025-06-05%20alle%2010.35.41.png)
+
+    ![Schermata_login](./Images/login.png)
+
+    ![Schermata_SignIn](./Images/SignIn.png)
+
+    ![User_page_logged](./Images/User_page.png)
+
+2. Shop(monete e pacchetti):
+    ![Shop_logged](./Images/Shop_logged.png)
+
+    ![Acquisto_logged](./Images/Acquisto_monete_e_pacchetti.png)
+	    Se non loggati si viene reindirizzati alla pagina di login in ambo i casi.
+
+    ![Pacchetti_acquistati](./Images/Bought_package.png)
+    I pacchetti acquistati sono disponibili all'apertura in una pagina dedicata, si possono aprire singolarmente o tutti insieme.
+
+3. Scambio carte:
+    ![Scambio_carte_unlogged](./Images/ExChange_unlogged.png)
+    Gli scambi presenti non possono essere effettuati se sloggati.
+
+    ![Scambio_carte_logged](./Images/ExChange_logged.png)
+      Eventuali scambi possono essere creati ed eliminati, non si possono accettare i propri scambi.
+
+    ![Creatore_scambi](./Images/ExChange_creator.png)
+
+4. album carte:
+    ![TutteLeCarte](./Images/Cards.png)
+    
+    Oltre all'album è presente una pagina che mostra tutte le carte disponibili.
+
+    ![Album](./Images/Album.png)
+    
+    Eventuali carte possedute saranno mostrate con un pulsante per la vendita(si può vendere una carta singola ogni volta che il pulsante viene cliccato)
+
+    ![CartaPosseduta](./Images/CartaPosseduta.png)
+    
+    Sia dall'album che dalla pagina delle carte presenti sul sito possiamo accedere ad alcune informazioni, ma solo se possediamo tali carte
+
+    ![CartaNonPosseduta](./Images/CartaNonPosseduta.png)
+    ![CartaPreferita](./Images/Card_favourite.png)
+    Per esempio, in questo caso non possediamo la carta, quindi l'immagine risulta grigia e le informazioni non vengono fornite.
+    Possiamo però cambiare il nostro personaggio preferito indipendentemente dal fatto di possederlo o meno.
+
+## API
+
+L'API del sito è disponibile (successivamente al lancio dell'applicazione) [qui](http://localhost:3001/api-docs)

@@ -158,7 +158,7 @@ async function registerUser(res, user) {
             coins: 0,
             album: {
             },
-            favorite_hero: user.fav_hero || "",
+            fav_magician: user.fav_magician || "",
             Boosters: {}
         });
 
@@ -182,14 +182,32 @@ async function deleteUser(id) {
 
     const connection = await client.connect();
     const db = connection.db(DB_NAME);
-    const user = await db.collection('Users').findOneAndDelete({ _id: ObjectId.createFromHexString(id) })
+    try {
+        const user = await db.collection('Users').findOneAndDelete({ _id: ObjectId.createFromHexString(id) })
 
-    connection.close();
+        try {
+            const scambi = await getScambiByUserId(id);
+            if (scambi.length > 0) {
+                console.log("Elimino gli scambi dell'utente...");
+                for (const scambio of scambi) {
+                    console.log(scambio);
+                    await deleteScambio(String(scambio._id), id);
+                }
+            }
+        } catch (err) {
+            console.log("Nessuno scambio da eliminare");
+        }
 
-    if (user == null) {
-        throw new Error("Format: Utente non trovato")
-    } else {
-        return user
+
+
+        if (user == null) {
+            throw new Error("Format: Utente non trovato")
+        } else {
+            return user
+        }
+
+    } finally {
+        await connection.close();
     }
 
 }
@@ -232,7 +250,7 @@ async function getUserById(id) {
                 username: user.username,
                 email: user.email,
                 coins: user.coins,
-                favorite_hero: user.favorite_hero,
+                fav_magician: user.fav_magician,
                 boosters: user.Boosters,
                 album: user.album
             };
@@ -391,7 +409,7 @@ async function updateFavMagician(id, hero) {
 
     try {
         const db = connection.db(DB_NAME);
-        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { favorite_hero: hero } })
+        await db.collection('Users').findOneAndUpdate({ _id: ObjectId.createFromHexString(id) }, { $set: { fav_magician: hero } })
     } finally {
         await connection.close();
     }
@@ -823,12 +841,6 @@ async function createScambio(userId, body) {
     if (body.carteRichieste.length <= 0) {
         throw new Error("Format: Inserisci la carta che desideri")
     }
-    if(hasDuplicates(body.carteOfferte)) {
-        throw new Error("Format: Non puoi offrire due volte la stessa carta")
-    }
-    if (hasDuplicates(body.carteRichieste)) {
-        throw new Error("Format: Non puoi richiedere due volte la stessa carta")
-    }
     console.log(body)
     const user = await getUserById(userId);
 
@@ -854,7 +866,7 @@ async function deleteScambio(exchangeId, userId) {
     const connection = await client.connect();
     try {
         const db = connection.db(DB_NAME);
-        const exchange = await db.collection('Exchanges').findOneAndDelete({ _id: ObjectId.createFromHexString(exchangeId) });
+        const exchange = await db.collection('Exchanges').findOneAndDelete({ _id: ObjectId.createFromHexString(exchangeId), userId: userId });
 
         if (exchange == null) {
             throw new Error("Scambio non trovato")
@@ -944,7 +956,7 @@ async function accettaScambio(userId, exchangeId) {
             const carta = scambio.carteOfferte[i];
             await removeCard(userCreatorId, carta.id)
             if ((await getUserCardById(userCreatorId, carta.id)).quantity < 2) {
-                nonPiuDisponibiliCreator.push({id:carta.id, name:carta.name});
+                nonPiuDisponibiliCreator.push({ id: carta.id, name: carta.name });
             }
             creatorRemoved.push(carta.id);
             await addCard(userId, carta.id)
@@ -956,7 +968,7 @@ async function accettaScambio(userId, exchangeId) {
             const carta = scambio.carteRichieste[i];
             await removeCard(userId, carta.id)
             if ((await getUserCardById(userId, carta.id)).quantity < 2) {
-                nonPiuDisponibiliUser.push({id:carta.id, name:carta.name});
+                nonPiuDisponibiliUser.push({ id: carta.id, name: carta.name });
             }
             userRemoved.push(carta.id);
             await addCard(userCreatorId, carta.id);
@@ -1131,17 +1143,6 @@ function handleError(err, res) {
     res.status(500).json({ error: err.message })
 }
 
-function hasDuplicates(array) {
-    const seen = new Set();
-    for (const item of array) {
-        if (seen.has(item.id)) {
-            return true; // Duplicato trovato
-        }
-        seen.add(item.id);
-    }
-    return false; // Nessun duplicato
-}
-
 module.exports = {
     registerUser,
     getUsers,
@@ -1152,8 +1153,6 @@ module.exports = {
     updatePassword,
     updateEmail,
     updateFavMagician,
-    addPersonalBoosters,
-    removePersonalBooster,
     searchEmail,
     getUserByUsername,
     updateCoins,

@@ -170,9 +170,11 @@ async function register() {
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
             username: username,
-            fav_hero: document.getElementById('favMagician').value
+            fav_magician: document.getElementById('favmagician').value
         })
     }
+    console.log(document.getElementById('favmagician').value);
+
     await fetch(url + '/register?apikey=' + apikey, options)
         .then(async (res) => {
             const json = await res.json();
@@ -248,7 +250,7 @@ async function getUserInfo() {
                 localStorage.setItem('username', JSON.stringify(json.username));
                 localStorage.setItem('coins', JSON.parse(json.coins));
                 localStorage.setItem('boostersNumber', boostersQuantity);
-                localStorage.setItem('favMagician', JSON.stringify(json.favorite_hero));
+                localStorage.setItem('favMagician', JSON.stringify(json.fav_magician));
                 document.getElementById('utente').innerHTML = json.username;
                 document.getElementById('old-email').value = json.email;
                 document.getElementById('coins').innerHTML = json.coins;
@@ -266,7 +268,7 @@ async function getUserInfo() {
 
 async function updateFavMagician(magician) {
     var magicianId = magician || document.getElementById('favmagician').value;
-    console.log(magicianId);
+
     var userId = JSON.parse(localStorage.getItem('userId'));
     const options = {
         method: 'PUT',
@@ -275,7 +277,7 @@ async function updateFavMagician(magician) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            fav_hero: magicianId
+            fav_magician: magicianId
         })
     }
 
@@ -353,7 +355,7 @@ async function updatePassword() {
     var message_error_old = document.getElementById("error-message-old-password");
     var message_error = document.getElementById("error-message-password");
     var new_password = document.getElementById("password").value;
-    console.log(old_password)
+
     var userId = JSON.parse(localStorage.getItem('userId'));
 
     const options = {
@@ -420,6 +422,8 @@ async function deleteAccount() {
         .catch(err => {
             console.log(err);
         })
+
+    //logout();
 }
 
 async function updateUsername() {
@@ -489,7 +493,6 @@ async function getBoosters() {
         .then(({ status, json }) => {
             if (status === 200) {
                 boosters = json;
-                console.log(json);
             } else {
                 console.log("show error alert")
             }
@@ -580,7 +583,7 @@ function showAlert(type, message) {
 async function buyCredits(coins) {
     var userId = JSON.parse(localStorage.getItem('userId'));
 
-    console.log(coins);
+
     const options = {
         method: 'PUT',
         headers: {
@@ -627,7 +630,6 @@ async function getScambi() {
         .then(({ status, json }) => {
             if (status === 200) {
                 scambi = json;
-                console.log(json);
             }
         })
         .catch(err => {
@@ -784,10 +786,9 @@ function showFoundCards(maghi, modal) {
         return;
     }
 
-
     var card = document.getElementById('card-hero');
 
-    console.log(maghi.length);
+
     for (i = 0; i < maghi.length; i++) {
         showCard(card, maghi[i], true);
     }
@@ -818,7 +819,7 @@ function showCard(card, hero, possessed) {
     name.innerHTML = `<b>${hero.name}</b>`;
 
     if (!possessed) {
-        console.log(possessed)
+
         image.style.filter = "grayscale(1)";
         description.innerHTML = `<p>Non possiedi questa carta</p>`
         house.innerHTML = "";
@@ -841,19 +842,25 @@ function showCard(card, hero, possessed) {
             }
         }
     }
-    if (favoriteButton != undefined) {
-        const favorite_hero = JSON.parse(localStorage.getItem("favMagician"));
 
-        if (hero.id == favorite_hero) {
-            favoriteButton.classList.add("btn-warning");
+    if (favoriteButton != undefined) {
+        const fav_magician = JSON.parse(localStorage.getItem("favMagician"));
+        if (localStorage.getItem("userId") != null) {
+            if (hero.id == fav_magician) {
+                favoriteButton.classList.add("btn-warning");
+                favoriteButton.classList.add("disabled");
+                favoriteButton.classList.remove("btn-primary");
+                favoriteButton.innerHTML = "This is your favorite magician";
+            } else {
+                favoriteButton.innerHTML = "Change favorite magician";
+                favoriteButton.setAttribute("onClick", `updateFavMagician('${hero.id}')`);
+            }
+        } else {
             favoriteButton.classList.add("disabled");
             favoriteButton.classList.remove("btn-primary");
-            favoriteButton.innerHTML = "This is your favorite magician";
-        } else {
-            favoriteButton.innerHTML = "Change favorite magician";
-            favoriteButton.setAttribute("onClick", `updateFavMagician('${hero.id}')`);
-            console.log(favoriteButton)
+            favoriteButton.innerHTML = "Login to set favorite magician";
         }
+
     }
 
     clone.classList.remove('d-none');

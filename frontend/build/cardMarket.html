@@ -14,7 +14,7 @@
 <body>
     <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid sticky-top">
 
-        <div class="navbar-brand mx-2 mb-0 h1">Progetto Web</div>
+        <div class="navbar-brand mx-2 mb-0 h1">AFSE</div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
             aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -185,7 +185,7 @@
                                         aria-label=".form-select-lg example">
                                         <option class="offerteDefault">Choose card</option>
                                         <option class="spinner spinner-border text-warning m-5" role="status">
-                                            <span class="visually-hidden">Loading...</span>
+                                            <span class="d-none">Loading...</span>
                                         </option>
                                         <option value="null" class="offerte d-none">carta</option>
                                     </select>
@@ -228,7 +228,7 @@
                 }
 
                 const myCards = await getMyCards("all");
-                console.log(myCards)
+
                 addCardOptions(myCards, "offerte");
 
                 if (myCards.length > 0) {
