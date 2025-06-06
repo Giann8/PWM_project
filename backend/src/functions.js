@@ -836,6 +836,30 @@ async function createScambio(userId, body) {
     if (body.carteRichieste.length <= 0) {
         throw new Error("Format: Inserisci la carta che desideri")
     }
+
+    // Controllo doppioni in carteOfferte
+    const offerteIds = body.carteOfferte.map(c => c.id);
+    const offerteSet = new Set(offerteIds);
+    if (offerteSet.size !== offerteIds.length) {
+        throw new Error("Format: Non puoi offrire due volte la stessa carta");
+    }
+
+    const richiesteIds = body.carteRichieste.map(c => c.id);
+    const richiesteSet = new Set(richiesteIds);
+    if (richiesteSet.size !== richiesteIds.length) {
+        throw new Error("Format: Non puoi richiedere due volte la stessa carta");
+    }
+
+    for(let i = 0; i < body.carteOfferte.length; i++) {
+        const carta = body.carteOfferte[i];
+        for (let j = 0; j < body.carteRichieste.length; j++) {
+            const cartaRichiesta = body.carteRichieste[j];
+            if (carta.id === cartaRichiesta.id) {
+                throw new Error("Format: Non puoi offrire la stessa carta che desideri");
+            }
+        }
+    }
+    
     console.log(body)
     const user = await getUserById(userId);
 

@@ -61,6 +61,19 @@ Il progetto è una web app per la gestione di carte collezionabili ([maghi](http
 
     ![Creatore_scambi](./Images/ExChange_creator.png)
 
+    Quando uno scambio viene accettato in caso di esito positivo le carte vengono spostate tra gli utenti, qualsiasi errore (dovuto a carte doppie in richiesta o in offerta, o a problemi interni al server) porterà alla restituzione di tutte le carte.
+
+    Es.
+    ![PreScambio](./Images/Esempio_doppio_scambio.png)
+    ![Scambio](./Images/Doppio_Scambio_creato.png)
+    ![Scambio_accettato_con_successo](./Images/Scambio_accettato.png)
+
+    Come possiamo vedere sotto, non possono essere creati scambi che hanno doppioni tra le carte richieste o tra quelle offerte.
+    ![Scambi_doppi_richieste](./Images/Test_doppia_richiesta.png)
+    ![Richiesta_fallita](./Images/Errore_doppia_richiesta.png)
+    ![Offerta](./Images/Test_doppia_offerta.png)
+    ![Offerta_fallita](./Images/Errore_doppia_offerta.png)
+
 4. album carte:
     ![TutteLeCarte](./Images/Cards.png)
     

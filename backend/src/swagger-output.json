@@ -1117,7 +1117,7 @@
             "type": "string",
             "example": "SuperMario"
           },
-          "favourite_hero": {
+          "fav_magician": {
             "type": "number",
             "example": 1009368
           },
@@ -1144,7 +1144,7 @@
           "password",
           "email",
           "username",
-          "favourite_hero",
+          "fav_magician",
           "sticker_album",
           "credits"
         ],
@@ -1171,7 +1171,7 @@
             "type": "string",
             "example": "MarioRossi@gmail.com"
           },
-          "favourite_hero": {
+          "fav_magician": {
             "type": "number",
             "example": 1009368
           }
@@ -1181,7 +1181,7 @@
           "username",
           "password",
           "email",
-          "favourite_hero"
+          "fav_magician"
         ],
         "xml": {
           "name": "userReg"
@@ -1270,13 +1270,13 @@
       "favouriteHeroSchema": {
         "type": "object",
         "properties": {
-          "favourite_hero": {
+          "fav_magician": {
             "type": "number",
             "example": 1009368
           }
         },
         "required": [
-          "favourite_hero"
+          "fav_magician"
         ],
         "xml": {
           "name": "favouriteHeroSchema"
