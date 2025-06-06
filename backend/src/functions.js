@@ -1,13 +1,8 @@
 const { MongoClient, ObjectId, Db } = require('mongodb')
 const crypto = require('crypto');
 const { getFromMarvel, getRandomInt } = require('./marvel');
-const { get } = require('http');
-const { createBrotliDecompress } = require('zlib');
 
-
-
-
-const DB_NAME = "MW_cards"
+const DB_NAME = process.env.MONGO_NAME;
 const client = new MongoClient(MONGO_URI);
 
 /**
