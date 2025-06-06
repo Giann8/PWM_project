@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progetto_Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</head>
+
+<body>
+    <div class="main">
+        <nav class="navbar navbar-dark bg-dark navbar-expand-lg container-fluid sticky-top">
+
+            <div class="navbar-brand mx-2 mb-0 h1">AFSE</div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
+                aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse mx-3 justify-content-between" id="navbarScroll">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active " aria-current="page" href="http://localhost:3000/home.html">Home</a>
+                    </li>
+                    <li class="nav-item" id="cardMarket">
+                        <a class="nav-link active" aria-current="page"
+                            href="http://localhost:3000/cardMarket.html">cardMarket</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active " aria-current="page"
+                            href="http://localhost:3000/cards.html">Cards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="http://localhost:3000/shop.html">SHOP</a>
+                    </li>
+
+                </ul>
+                <div id="user_nav" class="nav-item dropdown d-none">
+                    <button id="username" type="button" class="btn btn-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Offset
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <li class="md-0"><span class="dropdown-item-text"><b>Monete: </b>
+                                <p id="coins"></p>
+                                <b>Pacchetti: </b>
+                                <p id="boostersNumber"></p>
+                                </p>
+                            </span>
+                        </li>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item" href="http://localhost:3000/myPacks.html">My Packs</a>
+                        <a class="dropdown-item" href="http://localhost:3000/userPage.html">My Page</a>
+                        <a class="dropdown-item" href="http://localhost:3000/album.html">My Album</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="logout()">logout</button>
+                    </div>
+                </div>
+
+                <div id="login_nav" class="">
+                    <button class="btn btn-outline-warning" id="login-button"
+                        onclick="window.location.href='http://localhost:3000/login.html'">Login</button>
+                    <button class="btn btn-warning" id="register-button"
+                        onclick="window.location.href='http://localhost:3000/register.html'">Register</button>
+                </div>
+            </div>
+        </nav>
+
+        <div id="alerts" class="d-flex justify-content-center sticky-top">
+            <div id="error-alert" class="alert alert-danger sticky-top align-center d-none" role="alert">
+                <div class="d-flex justify-content-between">
+                    <p id="error"></p>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="document.getElementById('error-alert').classList.add('d-none')"></button>
+                </div>
+                <div class="progress" style="height:3px;">
+                    <div id="loading-bar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; "
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="success-alert" class="alert alert-success sticky-top align-center d-none" role="alert">
+                <div class="d-flex justify-content-between">
+                    <p id="success"></p>
+                    <button type="button" class="btn-close" aria-label="Close"
+                        onclick="document.getElementById('success-alert').classList.add('d-none')"></button>
+                </div>
+                <div class="progress" style="height:3px;">
+                    <div id="loading-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%; "
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="cardsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="cardsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between">
+                        <h5 class="modal-title" id="cardsModalLabel">Carte trovate</h5>
+                        <button class="btn btn-primary" onclick="window.location.reload()">Close</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="cards-container" class="d-flex flex-wrap justify-content-center">
+                            <div id="card-hero" class="card m-2 d-none" style="width:10rem;">
+                                <img src="assets/Carte_hp.jpg" class="card-img-top" alt="">
+                                <div class="card-body">
+                                    <h5 class="card-title">nome eroe</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress">
+                        <div id="loading-bar" class="progress-bar bg-warning" role="progressbar" style="width: 0%;"
+                            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="packs card">
+            <div class="d-flex justify-content-between m-3">
+                <h2 class="text m-2">Pacchetti</h2>
+                <button class="btn btn-outline-success me-4 px-4" id="buy-button" onclick="openAllBoosters(this)">Apri
+                    tutto <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+            </div>
+            <div id="boosters" class="row justify-content-center">
+
+                <div id="card-booster" class="col-sm-6 mb-3 d-none" style="max-width: 20rem;">
+                    <div class="card align-items-center text-white bg-dark h-100">
+                        <img id="image" src="" class="card-img-top" alt="...">
+                        <h5 id="name" class="card-title">test</h5>
+                        <p class="card-body">Carte:</p>
+                        <p class="card-body">Quantità posseduta:</p>
+                        <button id="buy-button" class="btn btn-outline-secondary mb-2" onclick="openBooster(this)">Apri
+                            pacchetto <span class="spinner-border spinner-border-sm d-none" role="status"
+                                aria-hidden="true"></span></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/lib.js"></script>
+    <script>
+        onload = async () => {
+            if (!checkLogin()) {
+                document.getElementsByClassName("packs")[0].innerHTML = `
+                <h2 class="text-center"> Non sei loggato, accedi per vedere i tuoi pacchetti </h2>
+                `
+            } else {
+                await getMyPacks()
+            }
+        }
+
+        async function getMyPacks() {
+            var userId = JSON.parse(localStorage.getItem('userId'));
+            const options = {
+                method: "GET",
+                headers: {
+                    accept: "application/json",
+                    'Content-Type': "application/json",
+                }
+            };
+            boosters = [];
+            const response = await fetch("http://localhost:3001/pacchettiUtente/" + userId + "?apikey=" + 123456, options)
+                .then(async (res) => {
+                    const json = await res.json();
+                    return { status: res.status, json: json };
+                })
+                .then(({ status, json }) => {
+                    if (status == 200) {
+                        showBooster(json.boosters);
+                        localStorage.setItem('boostersNumber', JSON.parse(json.total));
+                    } else if (status == 400) {
+                        document.getElementById("boosters").innerHTML = `
+                        <h2 class="text-center"> Non hai pacchetti, acquistane qualcuno <a href="shop.html">qui</a> </h2>
+                        `
+                        localStorage.setItem('boostersNumber', 0);
+                    }
+                }).catch((error) => {
+                    console.log(error);
+                });
+
+        }
+
+        async function showBooster(boosters) {
+            var card = document.getElementById("card-booster");
+
+            for (i = 0; i < boosters.length; i++) {
+                var booster = boosters[i].booster;
+                var clone = card.cloneNode(true);
+                title = clone.getElementsByClassName('card-title')[0];
+                description = clone.getElementsByClassName('card-body')[0];
+                quantity = clone.getElementsByClassName('card-body')[1];
+
+                image = clone.getElementsByClassName('card-img-top')[0];
+                button = clone.getElementsByClassName('btn btn-button')[0];
+
+                image.src = booster.img || "assets/Default_booster.jpg";
+                title.innerHTML = `<b>${booster.boosterName}</b>`;
+                description.innerHTML = `<p><b>Carte: </b>${booster.cardNumber}`;
+                quantity.innerHTML = `<p><b>Ne hai: </b>${boosters[i].quantity}`;
+
+                clone.classList.remove('d-none')
+                card.after(clone)
+            }
+        }
+
+        async function openBooster(button) {
+            showSpinner(button);
+
+            const card = button.closest('.card');
+            const nameElement = card.querySelector('.card-title').textContent;
+
+            var userId = JSON.parse(localStorage.getItem('userId'));
+            const options = {
+                method: "PUT",
+                headers: {
+                    accept: "application/json",
+                    'Content-Type': "application/json",
+                },
+                body: JSON.stringify({
+                    boosterName: nameElement
+                })
+            };
+
+            await fetch("http://localhost:3001/apriPacchetto/" + userId + "?apikey=123456", options)
+                .then(async (res) => {
+                    const json = await res.json();
+                    return { status: res.status, json: json };
+                }).then(({ status, json }) => {
+                    if (status == 200) {
+
+                        localStorage.setItem('boostersNumber', localStorage.getItem('boostersNumber') - 1);
+                        showFoundCards(json.heroes, true);
+
+                        startLoadingBar(10000);
+                        setInterval(() => {
+                            window.location.reload();
+                        }, 11000);
+                    } else if (status == 400) {
+                        showAlert("error", `<strong>Errore:</strong>` + json.error);
+                    }
+                    hideSpinner(button);
+                }).catch((error) => {
+                });
+
+        }
+
+        async function openAllBoosters(button) {
+            showSpinner(button);
+            const options = {
+                method: "PUT",
+                headers: {
+                    accept: "application/json",
+                    'Content-Type': "application/json",
+                }
+            }
+            var userId = JSON.parse(localStorage.getItem('userId'));
+
+            const response = await fetch("http://localhost:3001/apriTuttiPacchetti/" + userId + "?apikey=123456", options)
+                .then(async (res) => {
+                    const json = await res.json();
+                    return { status: res.status, json: json };
+                }).then(({ status, json }) => {
+                    if (status == 200) {
+                        localStorage.setItem('boostersNumber', 0);
+                        console.log(json.heroes);
+                        showFoundCards(json.heroes, true);
+                        startLoadingBar(15000);
+                        setInterval(() => {
+                            window.location.reload();
+                        }, 16000);
+                    }
+                }).catch((error) => {
+                    showAlert("error", "<strong>Errore:</strong> " + error);
+
+                });
+            hideSpinner(button);
+        }
+
+
+    </script>
+</body>
