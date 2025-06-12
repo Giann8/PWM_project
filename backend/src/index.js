@@ -526,28 +526,6 @@ app.delete('/scambi/:userId/:scambioId', async (req, res) => {
      */
 })
 
-app.get('/scambiWithSameCards/:userId', async (req, res) => {
-    try {
-        const result = await lib.getScambiWithSameCards(req.params.userId, req.body.cards);
-        res.status(200).json(result);
-    } catch (err) {
-        lib.handleError(err, res);
-    }
-    /*
-      #swagger.tags = ['Scambi']
-      #swagger.description = "Restituisce gli scambi che possiedono già le carde date"
-      #swagger.requestBody = {
-        required: true,
-       content: {
-            'application/json': {
-                schema: {
-                    $ref: "#/components/schemas/sameCardsScambiSchema"
-                }
-              }
-           }
-        }
-     */
-})
 
 // #HP API
 app.get('/maghi', async (req, res) => {
