@@ -541,7 +541,7 @@ app.get('/scambiWithSameCards/:userId', async (req, res) => {
        content: {
             'application/json': {
                 schema: {
-                    $cards:[]
+                    $ref: "#/components/schemas/sameCardsScambiSchema"
                 }
               }
            }

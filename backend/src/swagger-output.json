@@ -1040,7 +1040,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$cards": []
+                "$ref": "#/components/schemas/sameCardsScambiSchema"
               }
             }
           }
@@ -1118,17 +1118,17 @@
             "example": "SuperMario"
           },
           "fav_magician": {
-            "type": "number",
-            "example": 1009368
+            "type": "string",
+            "example": "af95bd8a-dfae-45bb-bc69-533860d34129"
           },
           "sticker_album": {
             "type": "object",
             "properties": {
-              "1009368": {
+              "9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8": {
                 "type": "number",
                 "example": 1
               },
-              "1009610": {
+              "af95bd8a-dfae-45bb-bc69-533860d34129": {
                 "type": "number",
                 "example": 2
               }
@@ -1172,8 +1172,8 @@
             "example": "MarioRossi@gmail.com"
           },
           "fav_magician": {
-            "type": "number",
-            "example": 1009368
+            "type": "string",
+            "example": "af95bd8a-dfae-45bb-bc69-533860d34129"
           }
         },
         "required": [
@@ -1271,8 +1271,8 @@
         "type": "object",
         "properties": {
           "fav_magician": {
-            "type": "number",
-            "example": 1009368
+            "type": "string",
+            "example": "af95bd8a-dfae-45bb-bc69-533860d34129"
           }
         },
         "required": [
@@ -1313,21 +1313,21 @@
           "carteRichieste": {
             "type": "array",
             "example": [
-              1009368,
-              1009610
+              "9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8",
+              "af95bd8a-dfae-45bb-bc69-533860d34129"
             ],
             "items": {
-              "type": "number"
+              "type": "string"
             }
           },
           "carteOfferte": {
             "type": "array",
             "example": [
-              1009368,
-              1009610
+              "4c7e6819-a91a-45b2-a454-f931e4a7cce3",
+              "c3b1f9a5-b87b-48bf-b00d-95b093ea6390"
             ],
             "items": {
-              "type": "number"
+              "type": "string"
             }
           }
         },
@@ -1337,6 +1337,26 @@
         ],
         "xml": {
           "name": "scambioSchema"
+        }
+      },
+      "sameCardsScambiSchema": {
+        "type": "object",
+        "properties": {
+          "carte": {
+            "type": "array",
+            "example": [
+              "9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "carte"
+        ],
+        "xml": {
+          "name": "sameCardsScambiSchema"
         }
       }
     },

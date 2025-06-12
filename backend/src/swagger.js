@@ -36,8 +36,8 @@ const doc = {
                 $password: 'password',
                 $email: 'MarioRossi@unimi.it',
                 $username: "SuperMario",
-                $fav_magician: 1009368,
-                $sticker_album: { 1009368: 1, 1009610: 2 },
+                $fav_magician: "af95bd8a-dfae-45bb-bc69-533860d34129",
+                $sticker_album: { "9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8": 1, "af95bd8a-dfae-45bb-bc69-533860d34129": 2 },
                 $credits: 0
             },
             userReg: {
@@ -45,26 +45,26 @@ const doc = {
                 $username: 'SuperMario',
                 $password: 'password',
                 $email: 'MarioRossi@gmail.com',
-                $fav_magician: 1009368
+                $fav_magician: "af95bd8a-dfae-45bb-bc69-533860d34129"
             },
             userLogin: {
                 $email: 'MarioRossi@gmail.com',
                 $password: 'password'
             },
-            usernameSchema:{
+            usernameSchema: {
                 $username: 'SuperMario'
             },
-            userPasswordSchema:{
+            userPasswordSchema: {
                 $password: 'password'
             },
-            emailSchema:{
+            emailSchema: {
                 $email: 'MarioRossi@gmail.com'
             },
             creditsSchema: {
                 $credits: 0
             },
             favouriteHeroSchema: {
-                $fav_magician: 1009368
+                $fav_magician: "af95bd8a-dfae-45bb-bc69-533860d34129"
             },
             boosterSchema: {
                 $boosterName: 'Booster',
@@ -72,9 +72,13 @@ const doc = {
                 $cardNumber: 4
             },
             scambioSchema: {
-                $carteRichieste: [1009368, 1009610],
-                $carteOfferte: [1009368, 1009610],
+                $carteRichieste: ["9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8", "af95bd8a-dfae-45bb-bc69-533860d34129"]
+                ,
+                $carteOfferte: ["4c7e6819-a91a-45b2-a454-f931e4a7cce3", "c3b1f9a5-b87b-48bf-b00d-95b093ea6390"],
             },
+            sameCardsScambiSchema: {
+                $carte: ["9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8"]
+            }
         },
         securitySchemes: {
             ApiKeyAuth: {
