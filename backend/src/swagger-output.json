@@ -511,7 +511,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "$boosterName": "boosterName"
+              "schema": {
+                "$ref": "#/components/schemas/boosterNameSchema"
+              }
             }
           }
         }
@@ -577,7 +579,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "$boosterName": "boosterName"
+              "schema": {
+                "$ref": "#/components/schemas/boosterNameSchema"
+              }
             }
           }
         }
@@ -709,7 +713,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "$cardId": "cardId"
+              "schema": {
+                "$ref": "#/components/schemas/cardIdSchema"
+              }
             }
           }
         }
@@ -1324,6 +1330,36 @@
         ],
         "xml": {
           "name": "sameCardsScambiSchema"
+        }
+      },
+      "boosterNameSchema": {
+        "type": "object",
+        "properties": {
+          "boosterName": {
+            "type": "string",
+            "example": "BoosterName"
+          }
+        },
+        "required": [
+          "boosterName"
+        ],
+        "xml": {
+          "name": "boosterNameSchema"
+        }
+      },
+      "cardIdSchema": {
+        "type": "object",
+        "properties": {
+          "cardId": {
+            "type": "string",
+            "example": "9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8"
+          }
+        },
+        "required": [
+          "cardId"
+        ],
+        "xml": {
+          "name": "cardIdSchema"
         }
       }
     },

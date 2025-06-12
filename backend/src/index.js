@@ -303,8 +303,10 @@ app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
         required: true,
        content: {
             'application/json':{
-                $boosterName: "boosterName"
-            }
+                schema: {
+                  $ref: "#/components/schemas/boosterNameSchema"
+                }
+             }
            }
         }
      */
@@ -336,7 +338,11 @@ app.put('/apriPacchetto/:userId', async (req, res) => {
       #swagger.requestBody = {
         required: true,
        content: {
-           'application/json':{ $boosterName: "boosterName"}
+           'application/json':{
+           schema:{
+           $ref: "#/components/schemas/boosterNameSchema"
+                }
+              }
            }
         }
      */
@@ -396,7 +402,10 @@ app.put('/addCarta/:userId', async (req, res) => {
         required: true,
        content: {
             'application/json': {
-            $cardId: "cardId"
+                schema: {
+                    $ref: "#/components/schemas/cardIdSchema"
+                }
+              }
            }
          }
         }
