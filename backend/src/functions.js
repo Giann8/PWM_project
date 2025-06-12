@@ -1194,7 +1194,6 @@ module.exports = {
     getScambi,
     getScambioById,
     getScambiByUserId,
-    getScambiWithSameCards,
     accettaScambio,
     deleteScambio,
     getRandomHero,

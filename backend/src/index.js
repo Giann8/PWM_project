@@ -302,7 +302,9 @@ app.put('/pacchetti/compraPacchetto/:userId', async (req, res) => {
       #swagger.requestBody = {
         required: true,
        content: {
-            $boosterName: "boosterName"
+            'application/json':{
+                $boosterName: "boosterName"
+            }
            }
         }
      */
@@ -334,7 +336,7 @@ app.put('/apriPacchetto/:userId', async (req, res) => {
       #swagger.requestBody = {
         required: true,
        content: {
-            $boosterName: "boosterName"
+           'application/json':{ $boosterName: "boosterName"}
            }
         }
      */
@@ -380,7 +382,7 @@ app.get('/cartaSingola/:cardId', async (req, res) => {
      */
 })
 
-app.put('/carte/:userId', async (req, res) => {
+app.put('/addCarta/:userId', async (req, res) => {
     try {
         const result = await lib.addCard(req.params.userId, req.body.cardId);
         res.status(200).json(result);
@@ -393,8 +395,10 @@ app.put('/carte/:userId', async (req, res) => {
       #swagger.requestBody = {
         required: true,
        content: {
+            'application/json': {
             $cardId: "cardId"
            }
+         }
         }
      */
 })

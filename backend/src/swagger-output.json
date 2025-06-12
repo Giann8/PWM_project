@@ -510,7 +510,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "$boosterName": "boosterName"
+            "application/json": {
+              "$boosterName": "boosterName"
+            }
           }
         }
       }
@@ -574,7 +576,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "$boosterName": "boosterName"
+            "application/json": {
+              "$boosterName": "boosterName"
+            }
           }
         }
       }
@@ -674,7 +678,7 @@
         }
       }
     },
-    "/carte/{userId}": {
+    "/addCarta/{userId}": {
       "put": {
         "tags": [
           "Carte"
@@ -704,7 +708,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "$cardId": "cardId"
+            "application/json": {
+              "$cardId": "cardId"
+            }
           }
         }
       }
