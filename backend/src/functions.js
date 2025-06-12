@@ -1034,9 +1034,9 @@ async function accettaScambio(userId, exchangeId) {
     if (scambiAttiviCreator.length > 0) {
         for (let i = 0; i < scambiAttiviCreator.length; i++) {
             const scambio = scambiAttiviCreator[i];
-            console.log(String(scambio._id));
+
             const response = await deleteScambio(String(scambio._id), userCreatorId);
-            console.log(response)
+
         }
     }
 
