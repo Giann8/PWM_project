@@ -15,7 +15,7 @@ Il progetto è una web app per la gestione di carte collezionabili ([maghi](http
 
 1. scaricare il file
 
-2. Eseguire il seguenti comando nel terminale:
+2. Eseguire i seguenti comandi nel terminale:
 3. ``` cd <nome-directory> && docker-compose up --build ``` o semplicemente ```docker-compose up --build``` se già all'interno della directory, per avviare in background utilizzare ```docker-compose up -d --build```, eventuali log possono essere visualizzati successivamente attraverso i comandi presenti nell'apposita [Documentazione](https://docs.docker.com/reference/cli/docker/container/)
 
 4. L'applicazione sarà disponibile su [http://localhost:3000](http://localhost:3000).
